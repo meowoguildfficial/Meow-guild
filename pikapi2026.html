@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEOW - Premium Music Vibes</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ================= GLOBAL STYLES ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #07020d; 
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;           
+            height: 100dvh;          
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;        
+            position: relative;
+            transition: background-color 0.5s ease;
+        }
+
+        /* Screen Toggle Classes */
+        .main-screen { 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%; 
+            height: 100%; 
+            justify-content: space-between; 
+        }
+        .download-screen { 
+            display: none; 
+            flex-direction: column; 
+            width: 100%; 
+            height: 100%; 
+            background: #ffffff; 
+            color: #333; 
+            overflow-y: auto; 
+        }
+
+        /* ================= OPENING ANIMATIONS ================= */
+        .animate-up {
+            opacity: 0;
+            animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        .animate-scale {
+            opacity: 0;
+            animation: scaleFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes scaleFadeIn {
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.35s; }
+        .delay-4 { animation-delay: 0.5s; }
+        .delay-5 { animation-delay: 0.6s; }
+        .delay-6 { animation-delay: 0.7s; }
+        .delay-7 { animation-delay: 0.8s; }
+
+        /* ================= ANIMATED PAW BACKGROUND ================= */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 50%, #1a0a33 0%, #07020d 80%);
+            transition: opacity 0.5s;
+        }
+
+        .paw-float {
+            position: absolute;
+            color: rgba(166, 124, 255, 0.15); 
+            bottom: -10%;
+            animation: floatPaw linear infinite;
+        }
+
+        @keyframes floatPaw {
+            0% { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(30deg) scale(1.2); opacity: 0; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 4vh 25px 2vh 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        /* ================= MEOW LOGO ================= */
+        .logo-display {
+            text-align: center;
+            margin-bottom: 2px;
+        }
+        
+        .animated-hero-logo {
+            font-family: 'Montserrat', sans-serif;
+            display: inline-flex;
+            align-items: baseline;
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 6px;
+        }
+
+        .animated-hero-logo .let {
+            display: inline-block;
+            color: #FFFFFF;
+            padding: 10px 5px; 
+            margin: -10px -5px;
+        }
+
+        .animated-hero-logo .pop-paw {
+            font-size: 0.85em; 
+            margin: 0 6px; 
+            color: #FFFFFF;
+            transform: rotate(10deg);
+        }
+
+        .sub-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 11px;
+            color: #8c7b9e;
+            letter-spacing: 5px;
+            text-transform: capitalize;
+            margin-bottom: 4vh;
+            font-weight: 300;
+        }
+
+        /* ================= MUSIC PLAYER & CAT SECTION ================= */
+        .record-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            margin-bottom: 4.5vh;
+            position: relative;
+        }
+
+        .peek-cat {
+            position: absolute;
+            top: 25px; 
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1; 
+            transition: top 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
+        }
+
+        .record-wrapper.playing .peek-cat {
+            top: -75px; 
+            animation: catHeadbang 0.6s infinite alternate cubic-bezier(0.4, 0, 0.6, 1);
+        }
+
+        @keyframes catHeadbang {
+            0% { transform: translateX(-50%) translateY(0) rotate(-3deg); }
+            100% { transform: translateX(-50%) translateY(8px) rotate(3deg); }
+        }
+
+        .cat-awake { opacity: 0; transition: opacity 0.3s; }
+        .cat-asleep { opacity: 1; transition: opacity 0.3s; }
+        .record-wrapper.playing .cat-awake { opacity: 1; }
+        .record-wrapper.playing .cat-asleep { opacity: 0; }
+
+        .zzz-group {
+            position: absolute;
+            top: -5px;
+            right: 15px;
+            color: #d1bdf0;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .zzz-group span {
+            position: absolute;
+            opacity: 0;
+            animation: zzzFloat 3s infinite linear;
+            animation-delay: calc(var(--i) * 1s);
+        }
+
+        .record-wrapper.playing .zzz-group span {
+            animation: none;
+            opacity: 0;
+        }
+
+        @keyframes zzzFloat {
+            0% { transform: translate(0, 0) scale(0.5) rotate(-10deg); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(30px, -50px) scale(1.5) rotate(10deg); opacity: 0; }
+        }
+
+        .record-glow {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px; height: 250px;
+            border-radius: 50%;
+            background: transparent;
+            box-shadow: 0 0 50px rgba(255, 0, 150, 0), 0 0 50px rgba(0, 255, 255, 0);
+            z-index: 0;
+            pointer-events: none;
+            transition: 0.4s ease;
+        }
+
+        .record-wrapper.playing .record-glow {
+            animation: colorPulse 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes colorPulse {
+            0% { box-shadow: 0 0 40px rgba(255, 0, 150, 0.4), 0 0 70px rgba(0, 255, 255, 0.2); transform: translate(-50%, -50%) scale(1); }
+            100% { box-shadow: 0 0 60px rgba(255, 0, 150, 0.8), 0 0 100px rgba(0, 255, 255, 0.6); transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        .record-glow.flash-glow {
+            box-shadow: 0 0 100px rgba(255, 255, 255, 1), 0 0 150px rgba(0, 255, 255, 0.9) !important;
+            transform: translate(-50%, -50%) scale(1.15) !important;
+            transition: 0.1s !important;
+        }
+
+        .record-container {
+            position: relative;
+            width: 250px; 
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #2d104a 0%, #0a0314 75%);
+            border: 1px solid rgba(166, 124, 255, 0.2);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2; 
+            animation: spinRecord 12s linear infinite;
+        }
+
+        .record-container.scratch-anim {
+            animation: djScratch 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+        }
+
+        @keyframes djScratch {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(90deg); }
+            40% { transform: rotate(-50deg); }
+            60% { transform: rotate(120deg); }
+            80% { transform: rotate(-30deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        @keyframes spinRecord {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .record-shine {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 45deg, 
+                transparent 10%, rgba(255, 0, 150, 0.1) 20%, 
+                rgba(0, 255, 255, 0.1) 30%, transparent 40%, 
+                transparent 60%, rgba(255, 0, 150, 0.1) 70%, 
+                rgba(0, 255, 255, 0.1) 80%, transparent 90%
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .record-container::before, .record-container::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .record-container::before {
+            width: 85%; height: 85%;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .record-container::after {
+            width: 70%; height: 70%;
+            border: 1px dashed rgba(255,255,255,0.05);
+        }
+
+        .record-center {
+            width: 105px; 
+            height: 105px; 
+            background: url('https://github.com/piyaspro76/FF-game-/blob/main/file_00000000feb48210a72b1f008029cc04.png?raw=true') center/cover;
+            border-radius: 50%;
+            border: 2px solid #a67cff; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+        }
+        
+        .record-center i {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 28px;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+        }
+
+        /* ================= SONG INFO & CONTROLS ================= */
+        .song-info {
+            text-align: center;
+            margin-bottom: 3vh;
+            width: 100%;
+        }
+        .song-info h3 {
+            font-size: 19px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .song-info p {
+            font-size: 10px;
+            color: #8c7b9e;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 400;
+        }
+
+        .progress-container {
+            width: 100%;
+            margin-bottom: 3.5vh;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            outline: none;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(255, 0, 150, 0.8);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.3);
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #8c7b9e;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 4vh;
+            padding: 0 10px;
+        }
+        .control-btn {
+            color: #8c7b9e;
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .control-btn:hover { color: #d1bdf0; }
+        
+        .play-btn {
+            position: relative; 
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff007f, #8a2be2); 
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 22px;
+            cursor: pointer;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(255, 0, 127, 0.3);
+            z-index: 5;
+        }
+        .play-btn:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 15px 25px rgba(138, 43, 226, 0.5);
+        }
+
+        .jelly-bounce {
+            animation: squishBounce 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+        }
+
+        @keyframes squishBounce {
+            0% { transform: scale(1, 1); }
+            25% { transform: scale(1.15, 0.85); }
+            50% { transform: scale(0.9, 1.1); }
+            75% { transform: scale(1.05, 0.95); }
+            100% { transform: scale(1, 1); }
+        }
+
+        .emoji-blast {
+            position: absolute;
+            font-size: 22px;
+            pointer-events: none;
+            z-index: 10;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: blastOut 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes blastOut {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+            100% { transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) scale(1.3) rotate(var(--rot)); opacity: 0; }
+        }
+
+        /* ================= FOOTER ================= */
+        .footer-area {
+            width: 100%;
+            padding: 20px 20px 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            margin-top: auto;
+        }
+
+        .footer-divider {
+            width: 100%;
+            max-width: 400px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            position: relative;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .footer-divider i {
+            position: absolute;
+            background: #07020d;
+            padding: 0 10px;
+            color: #7d4ba3;
+            font-size: 14px;
+        }
+
+        .footer-slogan {
+            font-size: 10px;
+            color: #8c7b9e;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .footer-copy {
+            font-size: 10px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        /* ================= PREMIUM SIDE DRAWER ================= */
+        .drawer-panel {
+            position: fixed;
+            top: 50%;
+            right: -280px; 
+            transform: translateY(-50%);
+            width: 280px;
+            background: rgba(20, 8, 40, 0.65);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(166, 124, 255, 0.3);
+            border-right: none;
+            border-radius: 20px 0 0 20px;
+            padding: 25px 20px;
+            box-shadow: -10px 10px 40px rgba(0,0,0,0.6), inset 1px 1px 15px rgba(166, 124, 255, 0.15);
+            z-index: 100;
+            transition: right 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .drawer-panel.open { right: 0; }
+
+        .drawer-toggle-tab {
+            position: absolute;
+            top: 50%;
+            left: -32px; 
+            transform: translateY(-50%);
+            width: 32px;
+            height: 70px;
+            background: rgba(20, 8, 40, 0.65);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(166, 124, 255, 0.3);
+            border-right: none;
+            border-radius: 12px 0 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d1bdf0;
+            cursor: pointer;
+            box-shadow: -5px 2px 15px rgba(0,0,0,0.4);
+            z-index: 99;
+            transition: 0.3s opacity;
+        }
+
+        .drawer-panel.open .drawer-toggle-tab {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .drawer-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .drawer-close-btn {
+            background: none;
+            border: none;
+            color: #8c7b9e;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .drawer-close-btn:hover {
+            color: #ff007f;
+            transform: rotate(90deg);
+        }
+
+        .drawer-text {
+            font-size: 11px;
+            color: #c9bdeb;
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        .drawer-download-btn {
+            background: rgba(166, 124, 255, 0.15);
+            border: 1px solid rgba(166, 124, 255, 0.5);
+            color: #ffffff;
+            padding: 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .drawer-download-btn:hover {
+            background: rgba(166, 124, 255, 0.3);
+            border-color: #d1bdf0;
+            box-shadow: 0 4px 15px rgba(166, 124, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .drawer-spinner {
+            display: none;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+        }
+
+        /* ================= DOWNLOAD PAGE STYLES ================= */
+        .dl-page-header {
+            width: 100%;
+            background-color: #1c272b;
+            color: #ffffff;
+            padding: 15px 20px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .dl-back-btn {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .dl-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .album-art {
+            width: 250px;
+            height: 250px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .album-art img { width: 100%; height: 100%; object-fit: cover; }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            font-size: 13px;
+        }
+        .info-table tr {
+            border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-table td {
+            padding: 15px 10px;
+            text-align: center;
+        }
+        .info-table strong { font-weight: 600; color: #111; }
+
+        .dl-description {
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding: 0 15px;
+        }
+
+        .download-header {
+            width: 100%;
+            background-color: #1c272b;
+            color: #ffffff;
+            padding: 12px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+        .dl-btn {
+            background-color: #0d3b44;
+            color: #ffffff;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(13, 59, 68, 0.3);
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+        .dl-btn:hover {
+            background-color: #135562;
+            transform: translateY(-2px);
+        }
+        .dl-btn i { color: #f39c12; font-size: 16px; }
+
+        .timer-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .circular-chart { display: block; margin: 0 auto; max-width: 80px; max-height: 80px; }
+        .circle-bg { fill: none; stroke: #eee; stroke-width: 3.8; }
+        .circle {
+            fill: none; stroke-width: 3.8; stroke-linecap: round;
+            transition: stroke-dasharray 1s linear;
+        }
+        .timer-text {
+            fill: #333; font-family: 'Montserrat', sans-serif; font-size: 10px; font-weight: 700; text-anchor: middle;
+        }
+        .timer-msg { margin-top: 10px; font-size: 12px; color: #555; font-weight: 500; }
+
+        #finalDownloadBtn {
+            display: none;
+            background-color: #27ae60;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+        }
+        #finalDownloadBtn:hover { background-color: #2ecc71; }
+
+        /* ================= LYRICS SECTION STYLES ================= */
+        .lyrics-section {
+            width: 100%;
+            margin-top: 20px;
+            margin-bottom: 40px;
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .lyrics-header {
+            background: #1c272b;
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .tap-hint {
+            font-size: 10px;
+            color: #f39c12;
+            font-weight: 400;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            animation: pulseHint 2s infinite;
+        }
+
+        @keyframes pulseHint {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .lyrics-content {
+            padding: 20px;
+            font-size: 13px;
+            color: #444;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .lyrics-content:active {
+            background: #f0f0f0;
+        }
+
+        /* Tooltip for Copied Action */
+        .copied-tooltip {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #27ae60;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .copied-tooltip.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- ============================================== -->
+    <!-- 1. MAIN MUSIC PLAYER SCREEN                    -->
+    <!-- ============================================== -->
+    <div id="mainScreen" class="main-screen">
+        <div class="bg-animation" id="bgAnim">
+            <i class="fas fa-paw paw-float" style="left: 10%; font-size: 20px; animation-duration: 15s; animation-delay: 0s;"></i>
+            <i class="fas fa-paw paw-float" style="left: 80%; font-size: 30px; animation-duration: 20s; animation-delay: 5s;"></i>
+            <i class="fas fa-paw paw-float" style="left: 30%; font-size: 25px; animation-duration: 18s; animation-delay: 2s;"></i>
+            <i class="fas fa-paw paw-float" style="left: 65%; font-size: 18px; animation-duration: 14s; animation-delay: 8s;"></i>
+            <i class="fas fa-paw paw-float" style="left: 50%; font-size: 35px; animation-duration: 22s; animation-delay: 12s;"></i>
+        </div>
+
+        <audio id="meowAudio" src="https://github.com/piyaspro76/FF-game-/raw/refs/heads/main/MEOW%20%E2%80%94%20WE%20OWN%20THE%20BATTLE_Audio.mp3"></audio>
+
+        <div class="drawer-panel" id="premiumDrawer">
+            <div class="drawer-toggle-tab" onclick="openDrawer()">
+                <i class="fas fa-chevron-left" style="font-size: 12px;"></i>
+            </div>
+            <div class="drawer-header">
+                <div class="drawer-title">
+                    <i class="fas fa-music" style="color: #a67cff;"></i> Sing Along!
+                </div>
+                <button class="drawer-close-btn" onclick="closeDrawer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="drawer-text">Get the full experience. Access the official lyrics and download the track directly to your device right meow.</p>
+            
+            <div class="drawer-download-btn" id="drawerDownloadBtn" onclick="handleDrawerBtnClick(this)">
+                <div class="drawer-spinner" id="btnSpinner"></div>
+                <i class="fas fa-download" id="btnIcon"></i> 
+                <span id="btnText">Download & Lyrics</span>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="logo-display animated-hero-logo animate-up delay-1">
+                <span class="let">M</span><span class="let">E</span><i class="fas fa-paw pop-paw"></i><span class="let">W</span>
+            </div>
+            <p class="sub-title animate-up delay-2" id="vibeText">Feel the Music</p>
+
+            <div class="record-wrapper animate-scale delay-3" id="recordWrapper">
+                <div class="peek-cat" id="peekCat">
+                    <div class="zzz-group">
+                        <span style="--i:1;">Z</span><span style="--i:2;">z</span><span style="--i:3;">z</span>
+                    </div>
+                    <svg viewBox="0 0 100 100" width="100" height="100">
+                        <filter id="catShadow"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.6"/></filter>
+                        <g filter="url(#catShadow)">
+                            <polygon points="12,40 5,5 45,30" fill="#eaddff" />
+                            <polygon points="88,40 95,5 55,30" fill="#eaddff" />
+                            <polygon points="18,35 12,15 35,28" fill="#ffb3d9" />
+                            <polygon points="82,35 88,15 65,28" fill="#ffb3d9" />
+                            <circle cx="50" cy="55" r="42" fill="#ffffff" />
+                            <ellipse cx="25" cy="62" rx="7" ry="3.5" fill="#ffb3d9" opacity="0.7"/>
+                            <ellipse cx="75" cy="62" rx="7" ry="3.5" fill="#ffb3d9" opacity="0.7"/>
+                            <g class="cat-awake">
+                                <circle cx="32" cy="52" r="5.5" fill="#07020d" /><circle cx="68" cy="52" r="5.5" fill="#07020d" />
+                                <circle cx="30" cy="50" r="2" fill="#ffffff" /><circle cx="66" cy="50" r="2" fill="#ffffff" />
+                            </g>
+                            <g class="cat-asleep">
+                                <path d="M 26,52 Q 32,58 38,52" stroke="#07020d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                <path d="M 62,52 Q 68,58 74,52" stroke="#07020d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                            </g>
+                            <path d="M 47,63 Q 50,66 53,63 Z" fill="#ff007f" />
+                            <path d="M 43,68 Q 50,73 50,67 Q 50,73 57,68" stroke="#07020d" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                </div>
+                <div class="record-glow" id="recordGlow"></div>
+                <div class="record-container" id="recordDisk">
+                    <div class="record-shine"></div>
+                    <div class="record-center">
+                        <i class="fas fa-cat"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="song-info animate-up delay-4">
+                <h3>WE OWN THE BATTLE</h3>
+                <p>Artist • MEOW GUILD</p>
+            </div>
+
+            <div class="progress-container animate-up delay-5">
+                <input type="range" id="seekSlider" min="0" max="100" value="0" step="0.1">
+                <div class="time-info">
+                    <span id="currentTime">00:00</span>
+                    <span id="totalTime">00:00</span>
+                </div>
+            </div>
+
+            <div class="controls animate-up delay-6">
+                <i class="fas fa-random control-btn" id="shuffleBtn" onclick="toggleShuffle()"></i>
+                <i class="fas fa-step-backward control-btn" onclick="skipAudio(-10)"></i>
+                <div class="play-btn" id="playBtnBtn" onclick="togglePlay()">
+                    <i class="fas fa-play" id="playIcon" style="margin-left: 4px;"></i>
+                </div>
+                <i class="fas fa-step-forward control-btn" onclick="skipAudio(10)"></i>
+                <i class="fas fa-sync-alt control-btn" id="repeatBtn" onclick="toggleRepeat()"></i>
+            </div>
+        </div>
+
+        <div class="footer-area animate-up delay-7">
+            <div class="footer-divider"><i class="fas fa-paw"></i></div>
+            <div class="footer-slogan">MEOW • MUSIC FOR EVERYONE</div>
+            <div class="footer-copy">&copy; 2026 MEOW. All rights reserved.</div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- 2. DOWNLOAD & INFO SCREEN (White Page)         -->
+    <!-- ============================================== -->
+    <div id="downloadScreen" class="download-screen">
+        <div class="dl-page-header">
+            <i class="fas fa-arrow-left dl-back-btn" onclick="goBackToMain()"></i>
+            WE OWN THE BATTLE - MEOW GUILD
+        </div>
+
+        <div class="dl-container">
+            <div class="album-art">
+                <img src="https://github.com/piyaspro76/FF-game-/blob/main/file_00000000feb48210a72b1f008029cc04.png?raw=true" alt="Album Cover">
+            </div>
+
+            <table class="info-table">
+                <tr><td><strong>Song Name:</strong> We Own The Battle</td></tr>
+                <tr><td><strong>Singer(s):</strong> MEOW Guild</td></tr>
+                <tr><td><strong>Lead Star(s):</strong> MEOW</td></tr>
+                <tr><td><strong>Music Composer:</strong> MEOW Guild</td></tr>
+            </table>
+
+            <div class="dl-description">
+                Download We Own The Battle Mp3 audio in 320Kbps from MEOW 2026 year, Sung by MEOW Guild, Composed by MEOW Guild.
+            </div>
+
+            <div class="download-header">
+                We Own The Battle Mp3 Song Download
+            </div>
+
+            <button class="dl-btn" id="startTimerBtn" onclick="startDownloadTimer()">
+                <i class="fas fa-inbox"></i> Generate Download Link
+            </button>
+
+            <div class="timer-container" id="timerContainer">
+                <svg viewBox="0 0 36 36" class="circular-chart" id="chartSvg">
+                    <path class="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" id="circleProgress"
+                        stroke="#0d3b44" stroke-dasharray="100, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <text x="18" y="21.5" class="timer-text" id="timeText">20s</text>
+                </svg>
+                <div class="timer-msg">Please wait while your link is generating...</div>
+            </div>
+
+            <a href="https://github.com/piyaspro76/FF-game-/raw/refs/heads/main/MEOW%20%E2%80%94%20WE%20OWN%20THE%20BATTLE_Audio.mp3" download class="dl-btn" id="finalDownloadBtn">
+                <i class="fas fa-download" style="color: #fff;"></i> Download Now (320 KBPS)
+            </a>
+
+            <!-- ================= LYRICS SECTION ================= -->
+            <div class="lyrics-section">
+                <div class="lyrics-header">
+                    <span><i class="fas fa-align-left" style="margin-right: 6px;"></i> Official Lyrics</span>
+                    <span class="tap-hint"><i class="fas fa-hand-pointer"></i> Tap to Copy</span>
+                </div>
+                <div class="lyrics-content" id="lyricsText" onclick="copyLyrics()">Check the squad. Lock the zone. No fear. No limits.
+Naam yaad rakhna... M-E-O-W.
+You know who's coming.
+MEOW IS IN THE GAME!
+
+Lobby mein entry, sabki nazar,
+MEOW ka naam, ab macha de asar.
+Game apna zone, aur focus hai tight,
+Squad meri ready, we own the night.
+
+Na fake wali hype, na borrowed fame,
+Mehnat se banaya humne apna name.
+Ek call pe move, ek signal pe go,
+Enemy soche, "Where did they go?"
+
+Aim mera steady, aur mindset elite,
+Bass jab drop ho, move to the beat.
+Har ek match mein naya level unlock,
+MEOW jab aaye, everybody watch.
+
+Na rukne ka plan, na peeche ka raasta,
+Jeetne ka jazba, dil mein hai vaasta.
+Apni hi lane, apna hi flow,
+M-E-O-W, now watch us go!
+
+Aankhon mein sapne, dil mein fire,
+Taking it higher, higher and higher.
+Saath chalein hum, never alone,
+Tonight, we're claiming the throne.
+
+Are you ready?
+Ready to rise!
+MEOW takes over tonight!
+
+MEOW! MEOW! — WE OWN THE BATTLE!
+Aaj ki raat, we're breaking the pattern!
+MEOW! MEOW! — WE RUN THE SHOW!
+Saath mein aaye, we're ready to go!
+Apni hai team, apna hai naam!
+Feel that power, feel that flame!
+MEOW! MEOW! — REMEMBER THE NAME!
+
+Friends by chance, squad by choice,
+MEOW ki power — raise your voice!
+
+Oh-oh-oh, we're taking control!
+Oh-oh-oh, MEOW heart and soul!
+M-E-O-W! WE OWN THE SHOW!
+
+Maidan mein aaye, toh pressure hai high,
+Nazrein hain target pe, eyes on the prize.
+Hum nahi rukte, we never retreat,
+Har ek challenge ko karte repeat.
+
+Squad mein trust aur loyalty strong,
+Saath hain hum, that's where we belong.
+Koi bhi aaye, we stay composed,
+Perfect timing, every move exposed.
+
+Kal tak strangers, aaj family tight,
+Saath mein grind, aur future is bright.
+Na sirf victory, na sirf fame,
+Respect hai sabse important game.
+
+Haar se seekhein, phir comeback karein,
+Har naye match mein apna best karein.
+No empty talk, let the gameplay speak,
+MEOW gets stronger every single week!
+
+Jab bhi tu gire, we'll rise again,
+Saath mein jeetenge, through every game.
+No looking back, no losing control,
+MEOW forever, heart and soul!
+
+Squad ready?
+Always ready!
+Game face on?
+Already steady!
+Three, two, one — LET'S GO!
+
+Har ek safar ki apni kahani,
+Saath ho squad toh jeet aasani.
+Dosti ka rishta, bharose ki dor,
+MEOW ke saath, we can do more.
+
+Different stories... One family...
+Different players... One legacy...
+Friends by chance, squad by choice, one guild, one voice!
+
+MEOW! MEOW! — WE OWN THE BATTLE!
+Aaj ki raat, we're breaking the pattern!
+MEOW! MEOW! — WE RUN THE SHOW!
+Saath mein aaye, we're ready to go!
+Apni hai team, apna hai naam!
+Feel that power, feel that flame!
+MEOW! MEOW! — REMEMBER THE NAME!
+
+Friends by chance, squad by choice,
+MEOW ki power — raise your voice!
+
+Oh-oh-oh, we're taking control!
+Oh-oh-oh, MEOW heart and soul!
+No fear! No limits! One squad! One legacy!
+M-E-O-W! MEOW FOREVER! WE OWN THE SHOW!
+
+Yaad rakhna... Game badalte rehte hain. Legends apni pehchaan chhod jaate hain.
+MEOW...
+Forever.
+FRIENDS BY CHANCE. SQUAD BY CHOICE.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Tooltip Element -->
+    <div class="copied-tooltip" id="copyTooltip">
+        <i class="fas fa-check-circle"></i> Lyrics Copied!
+    </div>
+
+    <!-- ============================================== -->
+    <!-- JAVASCRIPT SECTION                             -->
+    <!-- ============================================== -->
+    <script>
+        // === PLAYER LOGIC ===
+        const audio = document.getElementById('meowAudio');
+        const playIcon = document.getElementById('playIcon');
+        const playBtnBtn = document.getElementById('playBtnBtn');
+        const disk = document.getElementById('recordDisk');
+        const recordGlow = document.getElementById('recordGlow');
+        const recordWrapper = document.getElementById('recordWrapper');
+        const seekSlider = document.getElementById('seekSlider');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        const premiumDrawer = document.getElementById('premiumDrawer');
+        
+        let isPlaying = false, isDragging = false, isRepeat = false, isProcessing = false;
+        disk.style.animationPlayState = 'paused';
+
+        window.addEventListener('DOMContentLoaded', () => { setTimeout(() => { premiumDrawer.classList.add('open'); }, 4000); });
+        
+        function closeDrawer() { premiumDrawer.classList.remove('open'); }
+        function openDrawer() { premiumDrawer.classList.add('open'); }
+
+        let startX = 0, endX = 0;
+        document.addEventListener('touchstart', e => { startX = e.changedTouches[0].screenX; });
+        document.addEventListener('touchend', e => {
+            endX = e.changedTouches[0].screenX;
+            if (startX > window.innerWidth - 60 && startX - endX > 40) openDrawer();
+            if (premiumDrawer.classList.contains('open') && endX - startX > 40) closeDrawer();
+        });
+
+        function triggerJelly(element) {
+            element.classList.remove('jelly-bounce'); void element.offsetWidth; element.classList.add('jelly-bounce');
+        }
+
+        function togglePlay() {
+            triggerJelly(playBtnBtn);
+            isPlaying = !isPlaying;
+            if(isPlaying) {
+                audio.play(); playIcon.className = 'fas fa-pause'; playIcon.style.marginLeft = '0';
+                disk.style.animationPlayState = 'running'; recordWrapper.classList.add('playing'); 
+                document.getElementById('vibeText').innerText = "Vibing right meow... 🐾";
+            } else {
+                audio.pause(); playIcon.className = 'fas fa-play'; playIcon.style.marginLeft = '4px';
+                disk.style.animationPlayState = 'paused'; recordWrapper.classList.remove('playing'); 
+                document.getElementById('vibeText').innerText = "Feel the Music";
+            }
+        }
+
+        function skipAudio(seconds) {
+            if (audio.duration) {
+                audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration);
+                disk.classList.remove('scratch-anim'); recordGlow.classList.remove('flash-glow');
+                void disk.offsetWidth; 
+                disk.classList.add('scratch-anim'); recordGlow.classList.add('flash-glow');
+                setTimeout(() => { disk.classList.remove('scratch-anim'); recordGlow.classList.remove('flash-glow'); }, 400);
+            }
+        }
+
+        function toggleRepeat() {
+            isRepeat = !isRepeat;
+            audio.loop = isRepeat;
+            document.getElementById('repeatBtn').style.color = isRepeat ? '#ff007f' : '#8c7b9e'; 
+        }
+
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            document.getElementById('shuffleBtn').style.color = isShuffle ? '#ff007f' : '#8c7b9e';
+        }
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60), sec = Math.floor(seconds % 60);
+            if (sec < 10) sec = "0" + sec; return min + ":" + sec;
+        }
+
+        audio.addEventListener('timeupdate', () => {
+            if (!isDragging) {
+                const pct = (audio.currentTime / (audio.duration || 1)) * 100;
+                seekSlider.value = pct;
+                seekSlider.style.background = `linear-gradient(to right, #ff007f 0%, #8a2be2 ${pct}%, rgba(255,255,255,0.08) ${pct}%)`;
+                currentTimeEl.innerText = formatTime(audio.currentTime);
+            }
+        });
+        audio.addEventListener('loadedmetadata', () => { totalTimeEl.innerText = formatTime(audio.duration); });
+        
+        seekSlider.addEventListener('input', (e) => { isDragging = true; currentTimeEl.innerText = formatTime((e.target.value / 100) * (audio.duration || 1)); });
+        seekSlider.addEventListener('change', (e) => { isDragging = false; audio.currentTime = (e.target.value / 100) * (audio.duration || 1); });
+
+        // === SCREEN TRANSITION LOGIC ===
+        const mainScreen = document.getElementById('mainScreen');
+        const dlScreen = document.getElementById('downloadScreen');
+
+        function handleDrawerBtnClick(btn) {
+            if(isProcessing) return;
+            isProcessing = true;
+            triggerJelly(btn);
+            
+            document.getElementById('btnIcon').style.display = 'none';
+            document.getElementById('btnSpinner').style.display = 'inline-block';
+            document.getElementById('btnText').innerText = 'Processing...';
+            btn.style.pointerEvents = 'none'; 
+            
+            setTimeout(() => {
+                document.getElementById('btnIcon').style.display = 'inline-block';
+                document.getElementById('btnSpinner').style.display = 'none';
+                document.getElementById('btnText').innerText = 'Download & Lyrics';
+                btn.style.pointerEvents = 'auto';
+                isProcessing = false;
+                closeDrawer();
+
+                document.body.style.backgroundColor = "#ffffff"; 
+                mainScreen.style.display = 'none';
+                dlScreen.style.display = 'flex';
+                window.scrollTo(0, 0);
+
+            }, 1500); 
+        }
+
+        function goBackToMain() {
+            document.body.style.backgroundColor = "#07020d"; 
+            dlScreen.style.display = 'none';
+            mainScreen.style.display = 'flex';
+        }
+
+        // === DOWNLOAD TIMER LOGIC ===
+        let dlTimerInterval;
+        function startDownloadTimer() {
+            const startBtn = document.getElementById('startTimerBtn');
+            const timerContainer = document.getElementById('timerContainer');
+            const circleProgress = document.getElementById('circleProgress');
+            const timeText = document.getElementById('timeText');
+            const finalBtn = document.getElementById('finalDownloadBtn');
+
+            startBtn.style.display = 'none';
+            timerContainer.style.display = 'flex';
+            finalBtn.style.display = 'none';
+
+            let timeLeft = 20, totalTime = 20;
+
+            dlTimerInterval = setInterval(() => {
+                timeLeft--;
+                timeText.textContent = timeLeft + "s";
+                const percentage = (timeLeft / totalTime) * 100;
+                circleProgress.setAttribute('stroke-dasharray', `${percentage}, 100`);
+
+                if (timeLeft <= 0) {
+                    clearInterval(dlTimerInterval);
+                    timerContainer.style.display = 'none';
+                    finalBtn.style.display = 'flex';
+                }
+            }, 1000);
+        }
+
+        // === COPY LYRICS LOGIC ===
+        function copyLyrics() {
+            const lyricsText = document.getElementById("lyricsText").innerText;
+            
+            navigator.clipboard.writeText(lyricsText).then(() => {
+                const tooltip = document.getElementById("copyTooltip");
+                tooltip.classList.add("show");
+                
+                setTimeout(() => {
+                    tooltip.classList.remove("show");
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy!', err);
+            });
+        }
+    </script>
+</body>
+</html>
