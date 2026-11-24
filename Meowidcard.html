@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meow Guild Pro ID - Premium Edition</title>
+    
+    <!-- PDF, Barcode, QR Code, Cropper & Canvas Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <!-- Cropper.js CSS & JS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <!-- FIREBASE COMPAT SDK (For easy integration with inline HTML) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --theme-violet: #4A148C;      
+            --premium-gold: #F2C94C;      
+            --premium-cyan: #00E5FF;      
+            --text-dark: #111111;
+            --text-gray: #555555;
+            --ring-inner: #D6E4F0;        
+            --paw-purple: #9b4dff;
+            --flip-btn: #E91E63;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Montserrat', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        button, input, select, textarea { outline: none; }
+
+        /* --- ANIMATED BACKGROUND --- */
+        body { 
+            margin: 0;
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow-x: hidden; 
+            padding: 20px; 
+            background: linear-gradient(-45deg, #310a5d, #4A148C, #7b1fa2, #1a0033);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 2px, transparent 2px);
+            background-size: 40px 40px;
+            z-index: -1;
+            animation: patternMove 20s linear infinite;
+        }
+
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes patternMove { 0% { background-position: 0px 0px; } 100% { background-position: 40px 40px; } }
+
+        .admin-float-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #fff; font-size: 18px; cursor: pointer; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; }
+        .admin-float-btn:hover { background: var(--premium-gold); color: #111; transform: scale(1.1) rotate(15deg); border-color: var(--premium-gold); box-shadow: 0 5px 25px rgba(242, 201, 76, 0.6); }
+
+        .page-container { display: none; width: 100%; flex-direction: column; justify-content: center; align-items: center; animation: fadeIn 0.4s ease; }
+        .page-container.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-box { background: #fff; padding: 35px 30px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4); border-top: 6px solid var(--premium-gold); position: relative;}
+        .form-box h2 { color: var(--theme-violet); text-align: center; margin-bottom: 20px; font-weight: 800; font-size: 22px; }
+        .form-subtitle { text-align: center; font-size: 12px; color: #888; margin-bottom: 20px; margin-top: -15px; }
+        
+        .input-group { margin-bottom: 8px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 12px; color: #444; font-weight: 700; }
+        .input-group input, .input-group select { width: 100%; padding: 10px 12px; border: 2px solid #eee; border-radius: 8px; font-size: 13px; transition: 0.3s; background: #fdfdfd;}
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--theme-violet); background: #fff;}
+        input[type="file"] { background: #f9f9f9; cursor: pointer; padding: 8px;}
+        .row-inputs { display: flex; gap: 10px; }
+        .row-inputs .input-group { flex: 1; }
+
+        .validation-msg { font-size: 10px; margin-top: 4px; font-weight: bold; min-height: 14px; transition: 0.3s; display: flex; align-items: center; gap: 4px;}
+        .valid-success { color: #00C853; }
+        .valid-error { color: #E91E63; }
+        .valid-buffering { color: #FF9800; }
+
+        .btn-submit { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--theme-violet), #7b1fa2); border: none; border-radius: 8px; color: white; font-weight: 700; font-size: 15px; cursor: pointer; margin-top: 15px; transition: 0.3s; box-shadow: 0 5px 15px rgba(74, 20, 140, 0.3);}
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(74, 20, 140, 0.4); }
+        
+        .action-row { display: flex; gap: 10px; margin-bottom: 25px; width: 100%; max-width: 380px; justify-content: space-between;}
+        .action-row button { padding: 12px 10px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; transition: 0.2s;}
+        .btn-back { background: #fff; color: #333; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+        .btn-flip { background: linear-gradient(135deg, var(--flip-btn), #c2185b); color: #fff; box-shadow: 0 4px 10px rgba(233, 30, 99, 0.3);}
+        .btn-download { background: linear-gradient(135deg, var(--theme-violet), #7b1fa2); color: #fff; flex: 1.2; box-shadow: 0 4px 10px rgba(74, 20, 140, 0.3);}
+        .action-row button:active { transform: scale(0.95); }
+        
+        #crop-status { display: block; margin-top: 5px; font-size: 12px; font-weight: bold; }
+        .error-msg { color: #E91E63; font-size: 12px; font-weight: bold; text-align: center; margin-top: 10px; display: none; }
+
+        .admin-dashboard { background: #fff; width: 100%; max-width: 900px; border-radius: 20px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); border-top: 6px solid var(--theme-violet); }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed #ddd; padding-bottom: 15px; margin-bottom: 20px;}
+        .admin-header h2 { color: var(--theme-violet); margin: 0; font-weight: 900;}
+        .admin-tabs { display: flex; gap: 15px; margin-bottom: 20px; }
+        .admin-tab { padding: 10px 20px; background: #eee; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.3s; color: #555;}
+        .admin-tab.active { background: var(--theme-violet); color: #fff; box-shadow: 0 4px 10px rgba(74, 20, 140, 0.3);}
+        
+        .admin-section { display: none; }
+        .admin-section.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid #eee; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 700px;}
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
+        .data-table th { background: var(--theme-violet); color: #fff; font-weight: 700; white-space: nowrap;}
+        .data-table tr:hover { background: #f9f9f9; }
+        .status-badge { background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; letter-spacing: 1px; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .modal-container { width: 90%; max-width: 400px; background: #fff; padding: 25px; border-radius: 15px; text-align: left; position: relative;}
+        .modal-container h3 { text-align: center; color: var(--theme-violet); margin-bottom: 15px;}
+        .img-container { width: 100%; max-height: 60vh; margin-bottom: 20px; background: #eee; border-radius: 8px; overflow: hidden;}
+        .img-container img { display: block; max-width: 100%; }
+        
+        .modal-actions { display: flex; gap: 15px; justify-content: center; margin-top: 20px; }
+        .modal-actions button { padding: 12px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; flex: 1;}
+        .btn-confirm { background: var(--theme-violet); color: white; }
+        .btn-cancel { background: #eee; color: #333; }
+
+        .card-scene { perspective: 1000px; width: 380px; height: 650px; }
+        .card-flip-wrapper { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+        .card-flip-wrapper.is-flipped { transform: rotateY(180deg); }
+        .card-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4); background: #ffffff; overflow: hidden; border-radius: 12px; }
+        .card-back { transform: rotateY(180deg); }
+
+        .top-shape { position: absolute; top: 0; left: 0; width: 100%; height: 215px; background: var(--theme-violet); border-bottom-left-radius: 50% 30%; border-bottom-right-radius: 50% 30%; }
+        .card-logo { position: absolute; top: 25px; left: 30px; display: flex; align-items: center; gap: 10px; z-index: 10; }
+        .card-logo i { color: var(--paw-purple); font-size: 38px; transform: rotate(-10deg); }
+        .card-logo span { font-family: 'Pacifico', cursive; color: #fff; font-size: 34px; line-height: 1; padding-bottom: 5px; }
+
+        .avatar-container { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: transparent; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
+        .cat-ears-wrapper { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 4; display: flex; justify-content: space-between; }
+        .png-ear { position: absolute; width: 45%; height: auto; z-index: 4; transform-origin: bottom center; }
+        .png-ear.left { left: 20%; top: -6%; transform: rotate(-19deg); }
+        .png-ear.right { right: 20%; top: -6%; transform: rotate(19deg); }
+
+        /* --- UPDATED: FULL RING WITH SAME THICKNESS --- */
+        .ring-full {
+            position: absolute;
+            width: 175px;
+            height: 175px;
+            border-radius: 50%;
+            border: 12px solid transparent;
+            border-top-color: var(--premium-cyan);
+            border-right-color: var(--premium-cyan);
+            border-bottom-color: var(--premium-gold);
+            border-left-color: var(--premium-gold);
+            transform: rotate(-45deg); /* Divides colors evenly top and bottom */
+            z-index: 2;
+            box-sizing: border-box;
+        }
+        
+        .avatar-inner { width: 145px; height: 145px; background: #111; border-radius: 50%; border: 8px solid var(--ring-inner); z-index: 5; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        .avatar-inner img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* --- UPDATED: PDF-SAFE CAPSULE CSS --- */
+        .premium-capsule-wrapper {
+            position: absolute;
+            top: 275px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 15;
+        }
+        .premium-capsule { 
+            display: flex; 
+            background: #fff; 
+            border-radius: 25px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.12); 
+            overflow: hidden; 
+            font-size: 11px; 
+            font-weight: 800; 
+            white-space: nowrap; 
+            border: 1px solid #eaeaea; 
+        }
+        .capsule-part { padding: 6px 16px; display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
+        .capsule-part.app-id { 
+            background-color: var(--theme-violet); /* Fallback for html2canvas */
+            background-image: linear-gradient(135deg, var(--theme-violet), #7b1fa2); 
+            color: #fff; 
+        }
+        .capsule-part.role { color: var(--theme-violet); text-transform: uppercase; }
+
+        .details-section { position: absolute; top: 325px; width: 100%; display: flex; flex-direction: column; }
+        .player-name-section { text-align: center; width: 100%; padding: 0 30px; margin-bottom: 15px; }
+        .player-name { font-size: 22px; font-weight: 900; color: var(--text-dark); text-transform: uppercase; word-wrap: break-word; line-height: 1.2; }
+        
+        .stats-grid { display: flex; width: 100%; margin-bottom: 15px; padding: 0 30px; }
+        .col { flex: 1; display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+        .col.left { border-right: 1.5px solid #eaeaea; padding-right: 15px; }
+        .col.right { padding-left: 15px; }
+        .info-row { display: flex; flex-direction: column; }
+        .info-label { font-family: 'Open Sans', sans-serif; font-size: 10px; color: var(--text-dark); font-weight: 800; text-transform: uppercase;}
+        .info-value { font-family: 'Open Sans', sans-serif; font-size: 13px; color: var(--text-gray); margin-top: 2px; font-weight: 700; display: flex; align-items: center; gap: 6px;}
+        .info-value i { color: var(--theme-violet); }
+        
+        .address-wrapper { padding: 0 30px; width: 100%; }
+        .address-box { background: linear-gradient(to right, #ffffff, #f4f6f9); padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 4px solid var(--premium-gold); box-shadow: 0 4px 10px rgba(0,0,0,0.03); font-size: 11px; color: #444; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        .address-box .icon-bg { background: #fff; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(74, 20, 140, 0.15); }
+        .address-box i { font-size: 16px; color: var(--theme-violet); }
+        .address-text { flex: 1; line-height: 1.4; }
+
+        .bottom-scan-area { display: flex; justify-content: center; align-items: center; margin-top: 15px; width: 100%; padding: 0 20px;}
+        #dynamic-barcode { width: 100%; max-width: 300px; height: 50px; object-fit: contain; } 
+        .bottom-border { position: absolute; bottom: 0; left: 0; width: 100%; height: 25px; background: var(--theme-violet); z-index: 15; }
+
+        .back-top-shape { position: absolute; top: 0; left: 0; width: 100%; height: 130px; background: var(--theme-violet); border-bottom-left-radius: 50% 20%; border-bottom-right-radius: 50% 20%; }
+        .back-logo { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 10;}
+        .back-logo i { color: var(--paw-purple); font-size: 40px; }
+        .back-logo span { font-family: 'Pacifico', cursive; color: #fff; font-size: 24px; line-height: 1; margin-top: 5px; }
+        
+        .back-title { text-align: center; margin-top: 150px; color: var(--theme-violet); font-weight: 800; font-size: 16px; position: relative; z-index: 2; letter-spacing: 2px; text-transform: uppercase; }
+        .back-details { padding: 25px 35px; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 15px; }
+        .social-row { display: flex; align-items: center; gap: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; }
+        .social-icon { width: 35px; height: 35px; background: var(--ring-inner); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--theme-violet); font-size: 16px; }
+        .social-info { display: flex; flex-direction: column; }
+        .social-label { font-size: 9px; color: var(--text-gray); font-weight: 800; text-transform: uppercase; }
+        .social-val { font-size: 13px; color: var(--text-dark); font-weight: 700; margin-top: 2px; }
+
+        .qr-wrapper { margin: 20px auto 0; padding: 10px; background: #fff; border: 3px solid var(--premium-gold); border-radius: 15px; box-shadow: 0 10px 25px rgba(242, 201, 76, 0.3); width: 140px; height: 140px; display: flex; justify-content: center; align-items: center; }
+        #qrcode { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;}
+        #qrcode img, #qrcode canvas { width: 100% !important; height: 100% !important; object-fit: contain; border-radius: 5px; }
+
+        .a4-wrapper { position: fixed; top: 0; left: -9999px; width: 800px; height: 1131px; background: #ffffff; box-sizing: border-box; display: flex; flex-direction: column; z-index: -10; border-top: 25px solid var(--theme-violet); }
+        .a4-inner { flex: 1; padding: 40px 50px; display: flex; flex-direction: column; background: linear-gradient(135deg, #ffffff 0%, #f4ebff 100%); box-sizing: border-box; height: 100%; position: relative; overflow: hidden; }
+        .a4-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 550px; color: var(--theme-violet); opacity: 0.03; pointer-events: none; z-index: 0; }
+        .a4-header, .a4-profile-section, .a4-details-grid, .a4-barcode-container, .a4-footer { position: relative; z-index: 10; }
+        .a4-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px dashed #ccc; padding-bottom: 25px; margin-bottom: 25px; }
+        .a4-header-left { display: flex; align-items: center; gap: 20px; }
+        .a4-header-left i { font-size: 70px; color: var(--paw-purple); transform: rotate(-10deg);}
+        .a4-header-left .logo-text { font-family: 'Pacifico', cursive; color: var(--theme-violet); font-size: 55px; line-height: 1; margin-bottom: 5px; }
+        .a4-header-left .sub-text { font-size: 14px; font-weight: 900; color: var(--premium-gold); letter-spacing: 3px; text-transform: uppercase; background: #111; padding: 6px 12px; border-radius: 6px; display: inline-block;}
+        .a4-header-right { text-align: right; }
+        .a4-header-right h1 { color: var(--theme-violet); font-size: 38px; font-weight: 900; margin: 0; letter-spacing: 2px;}
+        .a4-header-right p { color: #888; font-size: 18px; font-weight: 700; margin: 5px 0 0; text-transform: uppercase;}
+        .a4-profile-section { display: flex; gap: 40px; align-items: center; margin-bottom: 25px; background: rgba(255, 255, 255, 0.85); padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5); backdrop-filter: blur(5px); }
+        .a4-profile-info { display: flex; flex-direction: column; justify-content: center; }
+        .a4-profile-info .name { font-size: 40px; font-weight: 900; color: var(--text-dark); line-height: 1.1; text-transform: uppercase; margin-bottom: 8px;}
+        .a4-profile-info .role { font-size: 22px; font-weight: 700; color: var(--theme-violet); margin-bottom: 15px;}
+        .a4-profile-info .app-id-badge { display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, var(--theme-violet), #7b1fa2); color: #fff; border-radius: 8px; font-weight: bold; font-size: 16px; letter-spacing: 1px; width: fit-content;}
+        .a4-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex: 1; }
+        .a4-info-box { background: rgba(255, 255, 255, 0.85); padding: 15px 20px; border-radius: 12px; border-left: 6px solid var(--theme-violet); box-shadow: 0 4px 15px rgba(74, 20, 140, 0.05); display: flex; flex-direction: column; justify-content: center; backdrop-filter: blur(5px);}
+        .a4-info-label { font-size: 13px; color: #888; font-weight: 800; text-transform: uppercase; margin-bottom: 8px; }
+        .a4-info-val { font-size: 18px; color: #111; font-weight: 700; display: flex; align-items: center; gap: 12px;}
+        .a4-info-val i { color: var(--theme-violet); font-size: 22px;}
+        .a4-barcode-container { margin-top: auto; margin-bottom: 15px; display: flex; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 15px; border: 1px dashed #ccc;}
+        #a4-barcode { width: 100%; max-width: 550px; height: 80px; }
+        .a4-footer { text-align: center; padding-top: 15px; border-top: 2px solid #eaeaea; font-size: 14px; font-weight: 800; color: #777; letter-spacing: 1px; margin-top: 5px;}
+        .a4-footer span { color: var(--theme-violet); }
+    
+            /* --- PREMIUM DATA CENTER CARDS --- */
+        .data-cards-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+        .member-data-card { background: linear-gradient(145deg, #ffffff, #f4f6f9); border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-left: 5px solid var(--theme-violet); text-align: left; position: relative; border-top: 1px solid #eee; border-right: 1px solid #eee; border-bottom: 1px solid #eee;}
+        .member-data-card h4 { color: var(--theme-violet); margin: 0 0 15px 0; font-size: 16px; border-bottom: 1px dashed #ccc; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: 800;}
+        .member-data-card .del-btn { background: #ffebee; color: #E91E63; border: 1px solid #ffcdd2; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; transition: 0.3s;}
+        .member-data-card .del-btn:hover { background: #E91E63; color: #fff; }
+        
+        /* নতুন লিস্ট ডিজাইন */
+        .data-list-inner { display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: #444; }
+        .data-row-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #fff; border-radius: 6px; border: 1px solid #eee; box-shadow: 0 1px 3px rgba(0,0,0,0.02);}
+        .data-row-item span.lbl { font-weight: 800; color: var(--theme-violet); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; width: 35%; flex-shrink: 0;}
+        .data-row-item span.val { font-weight: 600; color: #222; text-align: right; word-break: break-word;}
+
+    
+    </style>
+</head>
+<body>
+
+    <div class="admin-float-btn" onclick="openAdminLogin()" title="Admin Login">
+        <i class="fas fa-user-shield"></i>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="modal-admin-login" class="modal-overlay">
+        <div class="modal-container">
+            <h3><i class="fas fa-lock"></i> Admin Access</h3>
+            <p style="text-align: center; font-size: 12px; color: #666; margin-bottom: 20px;">Restricted to Guild Administrator</p>
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="admin-user" placeholder="Enter Admin Username">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+            </div>
+            <div class="error-msg" id="admin-error">Invalid Username or Password!</div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeAdminLogin()">Cancel</button>
+                <button class="btn-confirm" onclick="verifyAdmin()">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN DASHBOARD PAGE -->
+    <div id="page-admin-dashboard" class="page-container">
+        <div class="admin-dashboard">
+            <div class="admin-header">
+                <h2><i class="fas fa-user-shield"></i> Meow Admin Center</h2>
+                <button onclick="logoutAdmin()" style="padding: 8px 15px; border:none; background:#E91E63; color:#fff; border-radius:6px; cursor:pointer; font-weight:bold;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+            
+            <div class="admin-tabs">
+                <div class="admin-tab active" onclick="switchAdminTab('register')"><i class="fas fa-user-plus"></i> Register Member</div>
+                <div class="admin-tab" onclick="switchAdminTab('data')"><i class="fas fa-database"></i> Data Center</div>
+            </div>
+
+            <!-- Tab: Register -->
+            <div id="admin-tab-register" class="admin-section active">
+                <p style="font-size: 13px; color: #555; margin-bottom: 20px; font-weight: bold;">Fill out official details. (Saved to Firebase Cloud DB).</p>
+                
+                <div class="row-inputs">
+                    <div class="input-group"><label>Real Name</label><input type="text" id="reg-name" placeholder="E.g. Piyas Chakraborty"></div>
+                    <div class="input-group"><label>In-Game Name (IGN)</label><input type="text" id="reg-ign" placeholder="E.g. Op Arisu"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group"><label>App ID</label><input type="text" id="reg-appid" placeholder="E.g. MEOW-001"></div>
+                    <div class="input-group"><label>Card Password</label><input type="text" id="reg-pass" placeholder="Enter Password"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group"><label>Game ID (UID)</label><input type="text" id="reg-uid" placeholder="E.g. 1020304050"></div>
+                    <div class="input-group"><label>Guild ID</label><input type="text" id="reg-guild-id" placeholder="E.g. 3015468"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group">
+                        <label>Guild Role</label>
+                        <select id="reg-role">
+                            <option value="Guild Leader">Guild Leader</option>
+                            <option value="Co-Leader">Co-Leader</option>
+                            <option value="Elder">Elder</option>
+                            <option value="Member" selected>Member</option>
+                            <option value="Designer">Designer</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Level</label><input type="number" id="reg-level" placeholder="E.g. 75"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group">
+                        <label>Gender</label>
+                        <select id="reg-gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Hobby</label><input type="text" id="reg-hobby" placeholder="E.g. Gaming"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group"><label>Street / Area</label><input type="text" id="reg-street" placeholder="Address"></div>
+                    <div class="input-group"><label>City</label><input type="text" id="reg-city" placeholder="City"></div>
+                </div>
+                <div class="row-inputs">
+                    <div class="input-group"><label>State</label><input type="text" id="reg-state" placeholder="State"></div>
+                    <div class="input-group"><label>Country</label><input type="text" id="reg-country" placeholder="Country"></div>
+                    <div class="input-group"><label>Pin Code</label><input type="number" id="reg-pin" placeholder="Pin"></div>
+                </div>
+                                <div class="input-group">
+                    <label>Custom QR Code Link (For ID Back)</label>
+                    <input type="url" id="reg-qr-link" placeholder="E.g. https://instagram.com/yourprofile">
+                </div>
+
+                <button class="btn-submit" onclick="registerMember()"><i class="fas fa-cloud-upload-alt"></i> Save Member Data (Cloud)</button>
+            </div>
+
+            <!-- Tab: Data Center -->
+                        <!-- Tab: Data Center -->
+            <div id="admin-tab-data" class="admin-section">
+                <p style="font-size: 13px; color: #555; margin-bottom: 15px; font-weight: bold; text-align: center;">All Registered Profiles & Detailed Data</p>
+                <!-- টেবিলের বদলে নতুন কার্ড কন্টেইনার -->
+                <div id="data-center-cards" class="data-cards-container">
+                    <!-- Data will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Step 1 Form -->
+    <div id="page-form-1" class="page-container active">
+        <div class="form-box">
+            <h2>ID Card (Step 1/3)</h2>
+            <div class="form-subtitle">Verify against Firebase Cloud DB</div>
+            
+            <div class="row-inputs">
+                <div class="input-group">
+                    <label>Game ID (UID)</label>
+                    <input type="number" id="inp-uid" placeholder="Enter Game ID First" oninput="handleUIDInput()">
+                    <div class="validation-msg" id="feedback-inp-uid"></div>
+                </div>
+                <div class="input-group">
+                    <label>App ID (Auto)</label>
+                    <input type="text" id="inp-appid" placeholder="Auto-filled" readonly style="background:#f0f0f0;">
+                    <div class="validation-msg" id="feedback-inp-appid"></div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Player Name</label>
+                <input type="text" id="inp-name" placeholder="Enter Player Name" oninput="checkField('inp-name', 'name')">
+                <div class="validation-msg" id="feedback-inp-name"></div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="input-group">
+                    <label>Guild ID</label>
+                    <input type="number" id="inp-guild-id" placeholder="Enter Guild ID" oninput="checkField('inp-guild-id', 'guildId')">
+                    <div class="validation-msg" id="feedback-inp-guild-id"></div>
+                </div>
+                <div class="input-group">
+                    <label>Card Password</label>
+                    <input type="text" id="inp-pass" placeholder="Enter Card Password" oninput="checkField('inp-pass', 'pass')">
+                    <div class="validation-msg" id="feedback-inp-pass"></div>
+                </div>
+            </div>
+
+            <div class="row-inputs">
+                <div class="input-group">
+                    <label>Guild Role</label>
+                    <select id="inp-role" onchange="checkField('inp-role', 'role')">
+                        <option value="Guild Leader">Guild Leader</option>
+                        <option value="Co-Leader">Co-Leader</option>
+                        <option value="Elder">Elder</option>
+                        <option value="Member" selected>Member</option>
+                        <option value="Designer">Designer</option>
+                    </select>
+                    <div class="validation-msg" id="feedback-inp-role"></div>
+                </div>
+                <div class="input-group">
+                    <label>Level</label>
+                    <input type="number" id="inp-level" placeholder="Enter Level" oninput="checkField('inp-level', 'level')">
+                    <div class="validation-msg" id="feedback-inp-level"></div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label>Profile Picture (1:1)</label>
+                <input type="file" id="inp-photo" accept="image/*">
+                <span id="crop-status"></span>
+            </div>
+
+            <button class="btn-submit" onclick="goToStep2()">Next Step <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Step 2 Form -->
+    <div id="page-form-2" class="page-container">
+        <div class="form-box">
+            <h2>ID Card (Step 2/3)</h2>
+            <div class="form-subtitle">Profile & Address Verification</div>
+            <div class="row-inputs">
+                <div class="input-group"><label>In-Game Name (IGN)</label><input type="text" id="inp-ign" placeholder="Enter In-Game Name" oninput="checkField('inp-ign', 'ign')"><div class="validation-msg" id="feedback-inp-ign"></div></div>
+                <div class="input-group"><label>Gender</label><select id="inp-gender" onchange="checkField('inp-gender', 'gender')"><option value="Male">Male</option><option value="Female">Female</option><option value="Other">Other</option></select><div class="validation-msg" id="feedback-inp-gender"></div></div>
+            </div>
+            <div class="input-group"><label>Hobby</label><input type="text" id="inp-hobby" placeholder="Enter Hobby" oninput="checkField('inp-hobby', 'hobby')"><div class="validation-msg" id="feedback-inp-hobby"></div></div>
+            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0;">
+            <div class="row-inputs"><div class="input-group"><label>Street / Area</label><input type="text" id="inp-street" placeholder="Enter Street / Area" oninput="checkField('inp-street', 'street')"><div class="validation-msg" id="feedback-inp-street"></div></div><div class="input-group"><label>City</label><input type="text" id="inp-city" placeholder="Enter City" oninput="checkField('inp-city', 'city')"><div class="validation-msg" id="feedback-inp-city"></div></div></div>
+            <div class="row-inputs"><div class="input-group"><label>State</label><input type="text" id="inp-state" placeholder="Enter State" oninput="checkField('inp-state', 'state')"><div class="validation-msg" id="feedback-inp-state"></div></div><div class="input-group"><label>Country</label><input type="text" id="inp-country" placeholder="Enter Country" oninput="checkField('inp-country', 'country')"><div class="validation-msg" id="feedback-inp-country"></div></div></div>
+            <div class="input-group"><label>Pin Code</label><input type="number" id="inp-pin" placeholder="Enter Pin Code" oninput="checkField('inp-pin', 'pin')"><div class="validation-msg" id="feedback-inp-pin"></div></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-back" style="flex:1;" onclick="goBackToStep1()"><i class="fas fa-arrow-left"></i></button>
+                <button class="btn-submit" style="flex:3; margin-top:0;" onclick="goToStep3()">Next Step <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 3 Form -->
+    <div id="page-form-3" class="page-container">
+        <div class="form-box">
+            <h2>ID Card (Step 3/3)</h2>
+            <div class="form-subtitle" style="color: #E91E63; font-weight: 600;">Contact & Social (Optional)</div>
+            <p style="font-size:11px; color:#666; text-align:center; margin-bottom:15px;">This info does not require database verification.</p>
+            <div class="input-group"><label>Email ID</label><input type="email" id="inp-email" placeholder="Enter Email Address"></div>
+            <div class="row-inputs">
+                <div class="input-group" style="flex: 1;"><label>Social Platform</label><select id="inp-social-type"><option value="Instagram">Instagram</option><option value="Facebook">Facebook</option><option value="Youtube">YouTube</option><option value="X">X / Twitter</option><option value="Discord">Discord</option></select></div>
+                <div class="input-group" style="flex: 2;"><label>Social Username</label><input type="text" id="inp-social-id" placeholder="Enter Social Username"></div>
+            </div>
+            <div class="input-group"><label>WhatsApp Number</label><input type="number" id="inp-whatsapp" placeholder="Enter WhatsApp Number"></div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-back" style="flex:1;" onclick="goBackToStep2()"><i class="fas fa-arrow-left"></i> Back</button>
+                <button class="btn-submit" style="flex:2; margin-top:0;" onclick="generatePreview()">Finish & Generate <i class="fas fa-magic"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Cropper, PDF Settings) -->
+    <div id="crop-modal" class="modal-overlay"> <div class="modal-container"> <h3 style="color:var(--theme-violet); margin-bottom:15px; text-align:center;">Crop Profile (1:1)</h3> <div class="img-container"><img id="image-to-crop" src=""></div> <div class="modal-actions"> <button class="btn-cancel" onclick="closeCropper()">Cancel</button> <button class="btn-confirm" onclick="applyCrop()">Crop & Save</button> </div> </div> </div>
+    <div id="pdf-config-modal" class="modal-overlay"> <div class="modal-container"> <h3 style="color:var(--theme-violet); margin-bottom:10px;">PDF Print Settings</h3> <div class="input-group"> <label style="text-align: left;">Print Layout Format</label> <select id="pdf-format" onchange="togglePdfLayout()"> <option value="cr80" selected>CR80 ID Cards (Landscape Split)</option> <option value="a4-form">Full A4 Official Profile (Premium)</option> </select> </div> <div class="input-group" id="qty-group"> <label style="text-align: left;">Number of Cards per Page</label> <select id="pdf-qty"> <option value="1">1 Card</option> <option value="2">2 Cards</option> <option value="3">3 Cards</option> <option value="4" selected>4 Cards (Max)</option> </select> </div> <div class="modal-actions"> <button class="btn-cancel" onclick="closePdfModal()">Cancel</button> <button class="btn-confirm" id="btn-render-pdf" onclick="startPdfGeneration()">Generate PDF</button> </div> </div> </div>
+
+    <!-- Preview Page -->
+    <div id="page-preview" class="page-container">
+        <div class="action-row"> <button class="btn-back" onclick="goBackToEdit()"><i class="fas fa-edit"></i> Edit</button> <button class="btn-flip" onclick="toggleFlip()"><i class="fas fa-sync-alt"></i> Flip</button> <button class="btn-download" onclick="openPdfModal()"><i class="fas fa-file-pdf"></i> Download PDF</button> </div>
+        <div class="card-scene" id="card-scene">
+            <div class="card-flip-wrapper" id="flip-wrapper">
+                <!-- FRONT SIDE -->
+                <div class="card-face card-front" id="card-front-ui">
+                    <div class="top-shape"></div> <div class="card-logo"> <i class="fas fa-paw"></i> <span>meow</span> </div>
+                    
+                    <div class="avatar-container"> 
+                        <div class="cat-ears-wrapper"> 
+                            <img class="png-ear left" src="https://raw.githubusercontent.com/piyaspro76/FF-game-/refs/heads/main/1790611939506%20(1).png" crossorigin="anonymous"> 
+                            <img class="png-ear right" src="https://raw.githubusercontent.com/piyaspro76/FF-game-/refs/heads/main/1790611939506%20(2).png" crossorigin="anonymous"> 
+                        </div> 
+                        <!-- UPDATED: SINGLE FULL RING FOR PERFECT SIZE & SPLIT -->
+                        <div class="ring-full"></div>
+                        <div class="avatar-inner" id="avatar-display"><i class="fas fa-user-ninja" style="font-size: 60px; color:#fff;"></i></div> 
+                    </div>
+                    
+                    <!-- UPDATED: CAPSULE WITH WRAPPER FOR FLAWLESS PDF RENDERING -->
+                    <div class="premium-capsule-wrapper">
+                        <div class="premium-capsule"> 
+                            <div class="capsule-part app-id"><i class="fas fa-id-badge"></i> <span id="card-appid">APP-ID-N/A</span></div> 
+                            <div class="capsule-part role" id="card-role"><i class="fas fa-crown"></i> Member</div> 
+                        </div>
+                    </div>
+                    
+                    <div class="details-section"> <div class="player-name-section"> <div class="player-name" id="card-name">PLAYER NAME</div> </div> <div class="stats-grid"> <div class="col left"> <div class="info-row"><span class="info-label">IGN :</span><span class="info-value" id="card-ign">N/A</span></div> <div class="info-row"><span class="info-label">Level :</span><span class="info-value"><i class="fas fa-level-up-alt"></i> <span id="card-level">00</span></span></div> </div> <div class="col right"> <div class="info-row"><span class="info-label">Game ID :</span><span class="info-value" id="card-uid">N/A</span></div> <div class="info-row"><span class="info-label">Hobby :</span><span class="info-value" id="card-hobby">N/A</span></div> </div> </div> <div class="address-wrapper"> <div class="address-box"> <div class="icon-bg"><i class="fas fa-map-marker-alt"></i></div> <span class="address-text" id="card-address">Address not provided.</span> </div> </div> <div class="bottom-scan-area"> <img id="dynamic-barcode"> </div> </div> <div class="bottom-border"></div>
+                </div>
+                <!-- BACK SIDE -->
+                <div class="card-face card-back" id="card-back-ui">
+                    <div class="back-top-shape"></div> <div class="back-logo"> <i class="fas fa-paw"></i> <span>meow</span> </div> <div class="back-title">MEMBER CONTACT</div>
+                    <div class="back-details"> <div class="social-row"> <div class="social-icon"><i class="fas fa-envelope"></i></div> <div class="social-info"> <span class="social-label">Email Address</span> <span class="social-val" id="card-email">N/A</span> </div> </div> <div class="social-row"> <div class="social-icon"><i id="card-social-icon" class="fab fa-instagram"></i></div> <div class="social-info"> <span class="social-label" id="card-social-label">Social Media</span> <span class="social-val" id="card-social-id">N/A</span> </div> </div> <div class="social-row"> <div class="social-icon"><i class="fab fa-whatsapp"></i></div> <div class="social-info"> <span class="social-label">WhatsApp Number</span> <span class="social-val" id="card-whatsapp">N/A</span> </div> </div> <div class="qr-wrapper"> <div id="qrcode"></div> </div> </div> <div class="bottom-border"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- FULL A4 FORM CONTAINER (HIDDEN) -->
+    <div id="a4-premium-form" class="a4-wrapper">
+        <div class="a4-inner">
+            <i class="fas fa-paw a4-watermark"></i>
+            <div class="a4-header"> <div class="a4-header-left"> <i class="fas fa-paw"></i> <div> <div class="logo-text">meow</div> <div class="sub-text">Official Free Fire Guild</div> </div> </div> <div class="a4-header-right"> <h1>MEMBER PROFILE</h1> <p>Premium Document</p> </div> </div>
+            <div class="a4-profile-section"> 
+                <div class="avatar-container" style="position: relative; top: 0; left: 0; transform: none; flex-shrink: 0; margin-right: 10px;"> 
+                    <div class="cat-ears-wrapper"> 
+                        <img class="png-ear left" src="https://raw.githubusercontent.com/piyaspro76/FF-game-/refs/heads/main/1790611939506%20(1).png" crossorigin="anonymous"> 
+                        <img class="png-ear right" src="https://raw.githubusercontent.com/piyaspro76/FF-game-/refs/heads/main/1790611939506%20(2).png" crossorigin="anonymous"> 
+                    </div> 
+                    <!-- UPDATED: SINGLE FULL RING FOR A4 LAYOUT -->
+                    <div class="ring-full"></div>
+                    <div class="avatar-inner" id="a4-avatar-display"><i class="fas fa-user-ninja" style="font-size: 60px; color:#fff;"></i></div> 
+                </div> 
+                <div class="a4-profile-info"> <div class="name" id="a4-name">PLAYER NAME</div> <div class="role" id="a4-role"><i class="fas fa-crown"></i> Member</div> <div class="app-id-badge"><i class="fas fa-id-badge"></i> APP ID: <span id="a4-appid">N/A</span></div> </div> 
+            </div>
+            <div class="a4-details-grid"> <div class="a4-info-box"> <div class="a4-info-label">In-Game Name (IGN)</div> <div class="a4-info-val"><i class="fas fa-gamepad"></i> <span id="a4-ign">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">Game ID (UID)</div> <div class="a4-info-val"><i class="fas fa-fingerprint"></i> <span id="a4-uid">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">Guild ID</div> <div class="a4-info-val"><i class="fas fa-users"></i> <span id="a4-guild-id">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">Player Level</div> <div class="a4-info-val"><i class="fas fa-level-up-alt"></i> <span id="a4-level">00</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">Hobby</div> <div class="a4-info-val"><i class="fas fa-heart"></i> <span id="a4-hobby">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">WhatsApp Number</div> <div class="a4-info-val"><i class="fab fa-whatsapp"></i> <span id="a4-whatsapp">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label">Email Address</div> <div class="a4-info-val"><i class="fas fa-envelope"></i> <span id="a4-email">N/A</span></div> </div> <div class="a4-info-box"> <div class="a4-info-label" id="a4-social-label">Social Media</div> <div class="a4-info-val"><i id="a4-social-icon" class="fas fa-link"></i> <span id="a4-social-id">N/A</span></div> </div> <div class="a4-info-box" style="grid-column: span 2;"> <div class="a4-info-label">Full Address</div> <div class="a4-info-val"><i class="fas fa-map-marker-alt"></i> <span id="a4-address">Address not provided.</span></div> </div> </div>
+            <div class="a4-barcode-container"> <img id="a4-barcode"> </div>
+            <div class="a4-footer"> DEVELOPED BY <span>PIYAS CHAKRABORTY</span> &bull; EST. 2026 &bull; OFFICIAL MEOW GUILD DOCUMENT </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- FIREBASE & SYSTEM LOGIC SCRIPTS                -->
+    <!-- ============================================== -->
+    <script>
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyBga5hBdllY8xWnYRJS3PYDZPaVhBGFEGo",
+            authDomain: "meow-id-dc580.firebaseapp.com",
+            projectId: "meow-id-dc580",
+            storageBucket: "meow-id-dc580.firebasestorage.app",
+            messagingSenderId: "897147804457",
+            appId: "1:897147804457:web:a000ce2346089099d8f538"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        // -------------------------------------------------------------
+
+        let uploadedImageData = null;
+        let cropper;
+        let qrCodeInstance = null; 
+        
+        let activeUser = null; 
+
+        // --- ADMIN LOGIN LOGIC ---
+        function openAdminLogin() { document.getElementById('modal-admin-login').style.display = 'flex'; }
+        function closeAdminLogin() { 
+            document.getElementById('modal-admin-login').style.display = 'none'; 
+            document.getElementById('admin-error').style.display = 'none';
+        }
+
+        function verifyAdmin() {
+            const u = document.getElementById('admin-user').value.trim();
+            const p = document.getElementById('admin-pass').value.trim();
+            
+            if(u === 'piyas29' && p === 'piyas743411') {
+                closeAdminLogin();
+                document.querySelectorAll('.page-container').forEach(page => page.classList.remove('active'));
+                document.getElementById('page-admin-dashboard').classList.add('active');
+                document.getElementById('admin-user').value = '';
+                document.getElementById('admin-pass').value = '';
+                document.querySelector('.admin-float-btn').style.display = 'none';
+                loadDataCenter();
+            } else {
+                document.getElementById('admin-error').style.display = 'block';
+            }
+        }
+
+        function logoutAdmin() {
+            document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-form-1').classList.add('active');
+            document.querySelector('.admin-float-btn').style.display = 'flex';
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            
+            if(tab === 'register') {
+                document.querySelector('.admin-tabs div:nth-child(1)').classList.add('active');
+                document.getElementById('admin-tab-register').classList.add('active');
+            } else {
+                document.querySelector('.admin-tabs div:nth-child(2)').classList.add('active');
+                document.getElementById('admin-tab-data').classList.add('active');
+                loadDataCenter();
+            }
+        }
+
+        // --- FIREBASE ADMIN FUNCTIONS ---
+        async function registerMember() {
+            const newMember = {
+                name: document.getElementById('reg-name').value.trim(),
+                ign: document.getElementById('reg-ign').value.trim(),
+                appId: document.getElementById('reg-appid').value.trim(),
+                pass: document.getElementById('reg-pass').value.trim(),
+                uid: document.getElementById('reg-uid').value.trim(),
+                guildId: document.getElementById('reg-guild-id').value.trim(),
+                role: document.getElementById('reg-role').value,
+                level: document.getElementById('reg-level').value.trim(),
+                gender: document.getElementById('reg-gender').value,
+                hobby: document.getElementById('reg-hobby').value.trim(),
+                street: document.getElementById('reg-street').value.trim(),
+                city: document.getElementById('reg-city').value.trim(),
+                state: document.getElementById('reg-state').value.trim(),
+                country: document.getElementById('reg-country').value.trim(),
+                pin: document.getElementById('reg-pin').value.trim(),
+                                qrLink: document.getElementById('reg-qr-link').value.trim(),
+                
+
+                status: 'Registered',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if(!newMember.uid || !newMember.appId) {
+                alert("Game ID and App ID are required!");
+                return;
+            }
+
+            try {
+                const uidCheck = await db.collection('meow_members').where('uid', '==', newMember.uid).get();
+                const appidCheck = await db.collection('meow_members').where('appId', '==', newMember.appId).get();
+                
+                if(!uidCheck.empty || !appidCheck.empty) { 
+                    alert("Game ID or App ID already exists in Cloud Database!"); 
+                    return; 
+                }
+
+                await db.collection('meow_members').add(newMember);
+                alert("Member Successfully Registered to Cloud!");
+                
+                document.querySelectorAll('#admin-tab-register input').forEach(inp => inp.value = '');
+                document.getElementById('reg-role').selectedIndex = 3;
+document.getElementById('reg-gender').selectedIndex = 0;
+
+            } catch(e) {
+                console.error("Error saving data:", e);
+                alert("Database Error! Check console.");
+            }
+        }
+
+                        async function loadDataCenter() {
+            const container = document.getElementById('data-center-cards');
+            container.innerHTML = '<div style="text-align:center; padding: 20px; font-weight:bold; color:var(--theme-violet);">Loading Data from Cloud... <i class="fas fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const snapshot = await db.collection('meow_members').orderBy('timestamp', 'desc').get();
+                container.innerHTML = '';
+                
+                if(snapshot.empty) {
+                    container.innerHTML = '<div style="text-align:center; color:#E91E63; font-weight:bold; padding: 20px;">No members found in database.</div>';
+                    return;
+                }
+
+                let count = 1;
+                snapshot.forEach(doc => {
+                    const m = doc.data();
+                    const docId = doc.id;
+                    const fullAddr = [m.street, m.city, m.state, m.country].filter(Boolean).join(", ") + (m.pin ? ` - ${m.pin}` : '');
+                    const qrDisplay = m.qrLink ? `<a href="${m.qrLink}" target="_blank" style="color:var(--flip-btn); text-decoration:none; font-weight:bold;"><i class="fas fa-link"></i> Open Link</a>` : '<span style="color:#888;">Default Mini Profile</span>';
+
+                    const card = document.createElement('div');
+                    card.className = 'member-data-card';
+                    
+                    // এখানে নতুন লিস্ট ভিউয়ের HTML দেওয়া হয়েছে
+                    card.innerHTML = `
+                        <h4><span>#${count} - ${m.name}</span> <button class="del-btn" onclick="deleteMember('${docId}')"><i class="fas fa-trash"></i> Delete</button></h4>
+                        
+                        <div class="data-list-inner">
+                            <div class="data-row-item"><span class="lbl">IGN</span> <span class="val">${m.ign}</span></div>
+                            <div class="data-row-item"><span class="lbl">Role (Level)</span> <span class="val">${m.role} (Lv: ${m.level})</span></div>
+                            <div class="data-row-item"><span class="lbl">App ID</span> <span class="val" style="font-weight:900; color:var(--theme-violet);">${m.appId}</span></div>
+                            <div class="data-row-item"><span class="lbl">Password</span> <span class="val" style="font-weight:900; color:#E91E63;">${m.pass}</span></div>
+                            <div class="data-row-item"><span class="lbl">Game UID</span> <span class="val" style="font-family:monospace;">${m.uid}</span></div>
+                            <div class="data-row-item"><span class="lbl">Guild ID</span> <span class="val" style="font-family:monospace;">${m.guildId}</span></div>
+                            <div class="data-row-item"><span class="lbl">Gender & Hobby</span> <span class="val">${m.gender} • ${m.hobby || 'N/A'}</span></div>
+                            <div class="data-row-item"><span class="lbl">QR Custom Link</span> <span class="val">${qrDisplay}</span></div>
+                            
+                            <div class="data-row-item" style="flex-direction:column; align-items:flex-start; gap:5px; background:#f9f9f9;">
+                                <span class="lbl" style="width:100%;">Full Address <i class="fas fa-map-marker-alt"></i></span> 
+                                <span class="val" style="text-align:left; font-size:11px; line-height:1.4;">${fullAddr}</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                    count++;
+                });
+            } catch (e) {
+                console.error("Error fetching data:", e);
+                container.innerHTML = '<div style="text-align:center; color:red; font-weight:bold;">Error loading data! Check console.</div>';
+            }
+        }
+
+
+        async function deleteMember(docId) {
+            if(confirm("Are you sure you want to delete this member from Cloud Database?")) {
+                try {
+                    await db.collection('meow_members').doc(docId).delete();
+                    loadDataCenter();
+                } catch(e) {
+                    console.error("Error deleting document:", e);
+                    alert("Failed to delete member.");
+                }
+            }
+        }
+
+        // --- FIREBASE REAL-TIME DB VALIDATION LOGIC ---
+        async function handleUIDInput() {
+            const uidVal = document.getElementById('inp-uid').value.trim();
+            const feedbackEl = document.getElementById('feedback-inp-uid');
+            const appidFeedback = document.getElementById('feedback-inp-appid');
+            const appidEl = document.getElementById('inp-appid');
+            
+            if(uidVal === '') {
+                feedbackEl.innerHTML = ''; appidEl.value = ''; appidFeedback.innerHTML = ''; 
+                activeUser = null; return;
+            }
+
+            feedbackEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking Cloud DB...';
+            feedbackEl.className = 'validation-msg valid-buffering';
+
+            try {
+                const snapshot = await db.collection('meow_members').where('uid', '==', uidVal).get();
+                
+                if(!snapshot.empty) {
+                    activeUser = snapshot.docs[0].data();
+                    
+                    feedbackEl.innerHTML = '<i class="fas fa-check-circle"></i> UID Found in DB';
+                    feedbackEl.className = 'validation-msg valid-success';
+                    
+                    appidEl.value = activeUser.appId;
+                    appidFeedback.innerHTML = '<i class="fas fa-check-circle"></i> Auto-filled';
+                    appidFeedback.className = 'validation-msg valid-success';
+                    
+                    const fieldsToCheck = [
+                        {id:'inp-name', key:'name'}, {id:'inp-guild-id', key:'guildId'}, {id:'inp-pass', key:'pass'}, 
+                        {id:'inp-role', key:'role'}, {id:'inp-level', key:'level'}, {id:'inp-ign', key:'ign'}, 
+                        {id:'inp-gender', key:'gender'}, {id:'inp-hobby', key:'hobby'}, {id:'inp-street', key:'street'}, 
+                        {id:'inp-city', key:'city'}, {id:'inp-state', key:'state'}, {id:'inp-country', key:'country'}, {id:'inp-pin', key:'pin'}
+                    ];
+                    fieldsToCheck.forEach(f => {
+                        if(document.getElementById(f.id).value) checkField(f.id, f.key);
+                    });
+                } else {
+                    activeUser = null;
+                    appidEl.value = '';
+                    appidFeedback.innerHTML = '';
+                    feedbackEl.innerHTML = '<i class="fas fa-times-circle"></i> UID not in DB';
+                    feedbackEl.className = 'validation-msg valid-error';
+                }
+            } catch (e) {
+                console.error("Error querying UID:", e);
+                feedbackEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Connection Error';
+                feedbackEl.className = 'validation-msg valid-error';
+            }
+        }
+
+        function checkField(inputId, dbKey) {
+            const inputEl = document.getElementById(inputId);
+            const feedbackEl = document.getElementById('feedback-' + inputId);
+            if(!feedbackEl) return;
+            
+            const val = inputEl.value.trim();
+
+            if(val === '') {
+                feedbackEl.innerHTML = '';
+                feedbackEl.className = 'validation-msg';
+                return;
+            }
+
+            if(!activeUser) {
+                feedbackEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> Verify Game ID first';
+                feedbackEl.className = 'validation-msg valid-error';
+                return;
+            }
+
+            const expected = String(activeUser[dbKey] || '').trim();
+            
+            if (val.toLowerCase() === expected.toLowerCase()) {
+                feedbackEl.innerHTML = '<i class="fas fa-check-circle"></i> Verified Data';
+                feedbackEl.className = 'validation-msg valid-success';
+            } else if (expected.toLowerCase().startsWith(val.toLowerCase())) {
+                feedbackEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking DB...';
+                feedbackEl.className = 'validation-msg valid-buffering';
+            } else {
+                feedbackEl.innerHTML = '<i class="fas fa-times-circle"></i> Data Mismatch ✗';
+                feedbackEl.className = 'validation-msg valid-error';
+            }
+        }
+
+        function goToStep2() { document.getElementById('page-form-1').classList.remove('active'); document.getElementById('page-form-2').classList.add('active'); }
+        function goBackToStep1() { document.getElementById('page-form-2').classList.remove('active'); document.getElementById('page-form-1').classList.add('active'); }
+        function goToStep3() { document.getElementById('page-form-2').classList.remove('active'); document.getElementById('page-form-3').classList.add('active'); }
+        function goBackToStep2() { document.getElementById('page-form-3').classList.remove('active'); document.getElementById('page-form-2').classList.add('active'); }
+        function goBackToEdit() { document.getElementById('page-preview').classList.remove('active'); document.getElementById('page-form-3').classList.add('active'); document.getElementById('flip-wrapper').classList.remove('is-flipped'); document.querySelector('.admin-float-btn').style.display = 'flex';}
+
+        document.getElementById('inp-photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imageToCrop = document.getElementById('image-to-crop');
+                    imageToCrop.src = event.target.result;
+                    document.getElementById('crop-modal').style.display = 'flex';
+                    if (cropper) { cropper.destroy(); }
+                    cropper = new Cropper(imageToCrop, { aspectRatio: 1 / 1, viewMode: 1, autoCropArea: 1 });
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function closeCropper() { document.getElementById('crop-modal').style.display = 'none'; if (cropper) { cropper.destroy(); } }
+        function applyCrop() {
+            if (cropper) {
+                const canvas = cropper.getCroppedCanvas({ width: 500, height: 500 });
+                uploadedImageData = canvas.toDataURL('image/jpeg', 0.9);
+                const statusTxt = document.getElementById('crop-status');
+                statusTxt.innerText = "✅ Image Cropped & Saved!";
+                statusTxt.style.color = "green";
+                closeCropper();
+            }
+        }
+
+        function toggleFlip() { document.getElementById('flip-wrapper').classList.toggle('is-flipped'); }
+
+        function getRoleIcon(role) {
+            switch(role) {
+                case 'Guild Leader': return '<i class="fas fa-crown"></i>';
+                case 'Co-Leader': return '<i class="fas fa-star"></i>';
+                case 'Elder': return '<i class="fas fa-shield-alt"></i>';
+                case 'Designer': return '<i class="fas fa-paint-brush"></i>';
+                default: return '<i class="fas fa-user"></i>';
+            }
+        }
+        function getGenderIcon(gender) {
+            switch(gender) {
+                case 'Male': return '<i class="fas fa-mars" style="color:#2196F3;"></i>';
+                case 'Female': return '<i class="fas fa-venus" style="color:#E91E63;"></i>';
+                default: return '<i class="fas fa-transgender" style="color:#9C27B0;"></i>';
+            }
+        }
+        function getSocialIconClass(platform) {
+            switch(platform.toLowerCase()) {
+                case 'instagram': return 'fab fa-instagram';
+                case 'facebook': return 'fab fa-facebook';
+                case 'youtube': return 'fab fa-youtube';
+                case 'x': return 'fab fa-twitter';
+                case 'discord': return 'fab fa-discord';
+                default: return 'fas fa-link';
+            }
+        }
+
+        function generatePreview() {
+            let originalName = document.getElementById('inp-name').value || "PLAYER NAME";
+            let gender = document.getElementById('inp-gender').value;
+            let nameHtml = originalName + " " + getGenderIcon(gender);
+            let guildId = document.getElementById('inp-guild-id').value || "N/A";
+            let uidValue = document.getElementById('inp-uid').value || "N/A";
+            let passValue = document.getElementById('inp-pass').value || "NoPassword";
+            let role = document.getElementById('inp-role').value;
+            let roleHtml = `${getRoleIcon(role)} ${role}`;
+            let level = document.getElementById('inp-level').value || "00";
+            let ign = document.getElementById('inp-ign').value || "N/A";
+            let appid = document.getElementById('inp-appid').value || "N/A";
+            let hobby = document.getElementById('inp-hobby').value || "N/A";
+            let email = document.getElementById('inp-email').value || "N/A";
+            let socialPlatform = document.getElementById('inp-social-type').value;
+            let socialId = document.getElementById('inp-social-id').value || "N/A";
+            let socialIconClass = getSocialIconClass(socialPlatform);
+            let whatsapp = document.getElementById('inp-whatsapp').value || "N/A";
+            let street = document.getElementById('inp-street').value;
+            let city = document.getElementById('inp-city').value;
+            let state = document.getElementById('inp-state').value;
+            let country = document.getElementById('inp-country').value;
+            let pin = document.getElementById('inp-pin').value;
+            let addrParts = [street, city, state, country].filter(Boolean).join(", ");
+            if(pin) addrParts += ` - ${pin}`;
+            let fullAddress = addrParts || "Address not provided.";
+
+            document.getElementById('card-name').innerHTML = nameHtml; document.getElementById('card-role').innerHTML = roleHtml; document.getElementById('card-level').innerText = level; document.getElementById('card-ign').innerText = ign; document.getElementById('card-uid').innerText = uidValue; document.getElementById('card-appid').innerText = appid; document.getElementById('card-hobby').innerText = hobby; document.getElementById('card-address').innerText = fullAddress; document.getElementById('card-email').innerText = email; document.getElementById('card-social-label').innerText = socialPlatform; document.getElementById('card-social-id').innerText = socialId; document.getElementById('card-social-icon').className = socialIconClass; document.getElementById('card-whatsapp').innerText = whatsapp;
+            if (uploadedImageData) { document.getElementById('avatar-display').innerHTML = `<img src="${uploadedImageData}" alt="Player">`; }
+
+            document.getElementById('a4-name').innerHTML = nameHtml; document.getElementById('a4-role').innerHTML = roleHtml; document.getElementById('a4-appid').innerText = appid; document.getElementById('a4-ign').innerText = ign; document.getElementById('a4-uid').innerText = uidValue; document.getElementById('a4-guild-id').innerText = guildId; document.getElementById('a4-level').innerText = level; document.getElementById('a4-hobby').innerText = hobby; document.getElementById('a4-address').innerText = fullAddress; document.getElementById('a4-whatsapp').innerText = whatsapp; document.getElementById('a4-email').innerText = email; document.getElementById('a4-social-label').innerText = socialPlatform; document.getElementById('a4-social-id').innerText = socialId; document.getElementById('a4-social-icon').className = socialIconClass;
+            if (uploadedImageData) { document.getElementById('a4-avatar-display').innerHTML = `<img src="${uploadedImageData}" alt="Player">`; }
+
+            let barcodeData = `${appid},${passValue}`;
+
+            JsBarcode("#dynamic-barcode", barcodeData, { format: "CODE128", displayValue: false, height: 50, width: 2, margin: 0, background: "transparent", lineColor: "#111111" });
+            JsBarcode("#a4-barcode", barcodeData, { format: "CODE128", displayValue: false, height: 80, width: 3, margin: 0, background: "transparent", lineColor: "#111111" });
+
+            let qrContainer = document.getElementById("qrcode");
+            qrContainer.innerHTML = ""; 
+            let miniWebpage = `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:sans-serif;background:#f0f2f5;padding:20px;text-align:center;color:#333}.box{background:#fff;padding:25px;border-radius:15px;border-top:6px solid #4A148C;box-shadow:0 8px 20px rgba(0,0,0,0.1);max-width:400px;margin:auto}h1{color:#4A148C;margin:0 0 5px;font-size:24px}p.sub{color:#E91E63;font-size:13px;font-weight:bold;margin:0 0 20px}table{width:100%;text-align:left;border-collapse:collapse}td{padding:12px 5px;border-bottom:1px dashed #ddd;font-size:15px}td:first-child{font-weight:800;color:#555;width:40%}</style></head><body><div class="box"><h1>🐾 Meow Guild</h1><p class="sub">Official Member Profile</p><table><tr><td>Name</td><td>${originalName}</td></tr><tr><td>IGN</td><td>${ign}</td></tr><tr><td>App ID</td><td>${appid}</td></tr><tr><td>Game ID</td><td>${uidValue}</td></tr><tr><td>Role</td><td>${role}</td></tr><tr><td>Level</td><td>${level}</td></tr><tr><td>Guild ID</td><td>${guildId}</td></tr></table></div></body></html>`;
+            let qrData = (activeUser && activeUser.qrLink && activeUser.qrLink.trim() !== '') ? activeUser.qrLink : "data:text/html;charset=utf-8," + encodeURIComponent(miniWebpage);
+
+            
+                        qrCodeInstance = new QRCode(qrContainer, { text: qrData, width: 256, height: 256, colorDark : "#4A148C", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L });
+
+            document.getElementById('page-form-3').classList.remove('active');
+            document.querySelector('.admin-float-btn').style.display = 'none';
+            setTimeout(() => { document.getElementById('page-preview').classList.add('active'); }, 100); 
+        }
+
+        // --- PDF Generation Logic ---
+        function openPdfModal() { document.getElementById('pdf-config-modal').style.display = 'flex'; }
+        function closePdfModal() { document.getElementById('pdf-config-modal').style.display = 'none'; }
+        function togglePdfLayout() { document.getElementById('qty-group').style.display = (document.getElementById('pdf-format').value === 'a4-form') ? 'none' : 'block'; }
+        function createRotatedCanvas(sourceCanvas, angleDeg) { const rotated = document.createElement('canvas'); rotated.width = sourceCanvas.height; rotated.height = sourceCanvas.width; const ctx = rotated.getContext('2d'); ctx.translate(rotated.width / 2, rotated.height / 2); ctx.rotate(angleDeg * Math.PI / 180); ctx.drawImage(sourceCanvas, -sourceCanvas.width / 2, -sourceCanvas.height / 2); return rotated.toDataURL('image/jpeg', 1.0); }
+
+        async function startPdfGeneration() {
+            const format = document.getElementById('pdf-format').value;
+            const btn = document.getElementById('btn-render-pdf');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const opt = { scale: 3, useCORS: true, allowTaint: true, logging: false };
+
+                if (format === 'a4-form') {
+                    const a4Container = document.getElementById('a4-premium-form');
+                    const canvas = await html2canvas(a4Container, { ...opt, width: 800, height: 1131, windowWidth: 800, windowHeight: 1131 });
+                    const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                    doc.addImage(imgData, 'JPEG', 0, 0, 210, 297);
+                    doc.save('Meow_Guild_Official_Profile.pdf');
+                } else {
+                    const qty = parseInt(document.getElementById('pdf-qty').value);
+                    const scene = document.getElementById('card-scene');
+                    const wrapper = document.getElementById('flip-wrapper');
+                    const frontCard = document.getElementById('card-front-ui');
+                    const backCard = document.getElementById('card-back-ui');
+
+                    const originalPerspective = scene.style.perspective;
+                    scene.style.perspective = 'none'; wrapper.style.transition = 'none'; wrapper.classList.remove('is-flipped');
+                    const originalBackTransform = backCard.style.transform; backCard.style.transform = 'none'; 
+
+                    await new Promise(r => setTimeout(r, 100));
+
+                    const cFront = await html2canvas(frontCard, opt);
+                    const cBack = await html2canvas(backCard, opt);
+
+                    scene.style.perspective = originalPerspective; backCard.style.transform = originalBackTransform; wrapper.style.transition = '';
+
+                    const imgFrontStr = createRotatedCanvas(cFront, -90); const imgBackStr  = createRotatedCanvas(cBack, 90);
+                    const startX = 19.4; let startY = 15; const cardW = 85.6; const cardH = 54; const gap = 12;      
+
+                    for(let i = 0; i < qty; i++) {
+                        doc.addImage(imgFrontStr, 'JPEG', startX, startY, cardW, cardH);
+                        doc.addImage(imgBackStr, 'JPEG', startX + cardW, startY, cardW, cardH);
+                        doc.setDrawColor(150, 150, 150); doc.setLineDashPattern([2, 2], 0); doc.rect(startX, startY, cardW * 2, cardH); doc.line(startX + cardW, startY, startX + cardW, startY + cardH);
+                        startY += cardH + gap;
+                    }
+                    doc.save('Meow_Guild_CR80_Cards.pdf');
+                }
+            } catch (err) { console.error("PDF generation failed:", err); alert("Failed to generate PDF."); }
+            btn.innerHTML = 'Generate PDF'; btn.disabled = false; closePdfModal();
+        }
+    </script>
+</body>
+</html>
