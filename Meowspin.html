@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEOW Guild - Premium Destiny Slots</title>
+    <!-- Cute & Premium Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@700;900&family=Baloo+2:wght@600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDK (v8 for easy single-file integration) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-analytics.js"></script>
+
+    <style>
+        :root {
+            /* Vibrant Premium Colors */
+            --bg-top: #4a0d9e; 
+            --bg-mid: #6822d1;
+            --bg-bottom: #1ec8c8;
+            --card-glass: rgba(255, 255, 255, 0.12);
+            --card-border: rgba(255, 255, 255, 0.25);
+            --cute-purple: #7e22ce;
+            --cute-yellow: #ffde59;
+            --cute-pink: #ff66c4;
+            --cute-green: #00e676;
+            --error-red: #ff3366;
+            --text-main: #ffffff;
+            
+            /* Admin Buttons & Sliders */
+            --cute-gold: #ffde59;
+            --success-green: #00e676;
+            --cute-violet: #8a2be2;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            background: linear-gradient(160deg, var(--bg-top) 0%, var(--bg-mid) 50%, var(--bg-bottom) 100%);
+            color: var(--text-main); font-family: 'Nunito', sans-serif;
+            height: 100dvh; width: 100vw; overflow: hidden !important;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- HEAVY BACKGROUND ANIMATIONS --- */
+        .bg-pattern {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.25) 2px, transparent 2px);
+            background-size: 35px 35px; animation: drift 20s linear infinite;
+        }
+        @keyframes drift { 0% { transform: translateY(0); } 100% { transform: translateY(35px); } }
+
+        /* Floating Orbs for Premium Glow */
+        .glow-orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0; animation: floatOrb 6s infinite alternate ease-in-out; }
+        .orb-1 { width: 300px; height: 300px; background: rgba(255, 222, 89, 0.2); top: 10%; left: 10%; }
+        .orb-2 { width: 350px; height: 350px; background: rgba(255, 102, 196, 0.2); bottom: 10%; right: 10%; animation-delay: -3s; }
+        .orb-3 { width: 250px; height: 250px; background: rgba(0, 230, 118, 0.15); top: 40%; left: 50%; transform: translateX(-50%); animation-delay: -1s; }
+        @keyframes floatOrb { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.2) translate(20px, 20px); } }
+
+        /* Floating Paws & Magic Stars */
+        .floating-elements { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden; }
+        .float-item { position: absolute; animation: floatUp linear infinite; bottom: -100px; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.15)); }
+        @keyframes floatUp { 0% { transform: translate3d(0, 0, 0) rotate(-15deg) scale(0.8); opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { transform: translate3d(0, -120vh, 0) rotate(25deg) scale(1.5); opacity: 0; } }
+        
+        .fpaw:nth-child(1) { left: 10%; animation-duration: 12s; font-size: 60px; color: rgba(255,255,255,0.1); }
+        .fpaw:nth-child(2) { left: 85%; animation-duration: 16s; font-size: 70px; animation-delay: 2s; color: rgba(255, 222, 89, 0.15); }
+        .fpaw:nth-child(3) { left: 45%; animation-duration: 20s; font-size: 45px; animation-delay: 5s; color: rgba(255, 102, 196, 0.15); }
+        
+        .fstar { color: rgba(255,255,255,0.8); animation: twinkle 2s infinite alternate; filter: drop-shadow(0 0 8px #fff); position: absolute;}
+        @keyframes twinkle { 0% { opacity: 0.2; transform: scale(0.6) rotate(0deg); } 100% { opacity: 1; transform: scale(1.2) rotate(45deg); } }
+
+        #confettiCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 15; pointer-events: none; }
+
+        /* --- SCREEN MANAGEMENT --- */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            z-index: 5; transition: opacity 0.5s, transform 0.5s;
+            padding: 30px 15px; opacity: 0; pointer-events: none; transform: scale(1.05);
+            overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth;
+        }
+        .screen.active { opacity: 1; pointer-events: auto; transform: scale(1); z-index: 10; }
+        .screen::-webkit-scrollbar { display: none; }
+        
+        .center-wrap { 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            min-height: 100%; width: 100%; padding: 20px 0; margin: auto;
+        }
+
+        @media (max-height: 850px) { .center-wrap { justify-content: flex-start; } }
+
+        /* ================= REGULAR AUTH CONTAINERS ================= */
+        .auth-container {
+            width: 100%; max-width: 400px; text-align: center;
+            background: var(--card-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 2px solid var(--card-border); border-radius: 35px;
+            padding: 35px 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            position: relative; margin-bottom: 30px;
+        }
+
+        .auth-logo { font-size: 55px; color: var(--cute-yellow); margin-bottom: 10px; filter: drop-shadow(0 5px 15px rgba(255,222,89,0.5)); animation: bounceLogo 2s infinite ease-in-out; cursor: pointer; -webkit-tap-highlight-color: transparent;}
+        @keyframes bounceLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+
+        .auth-title { font-family: 'Baloo 2', cursive; font-size: 38px; font-weight: 900; color: #fff; line-height: 1; margin-bottom: 5px; text-shadow: 0 4px 0 rgba(0,0,0,0.15); letter-spacing: 1px;}
+        .auth-subtitle { font-family: 'Fredoka', sans-serif; font-size: 14px; color: #e0f7fa; margin-bottom: 25px; font-weight: 700; letter-spacing: 1px;}
+
+        /* ================= PUBLIC REGISTRATION SPECIFIC CSS ================= */
+        #publicRegScreen { background: radial-gradient(circle at top, #1a0b33 0%, #0d011a 100%); z-index: 6; }
+        .full-reg-wrapper { width: 100%; max-width: 450px; text-align: center; padding: 20px; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .shine-text {
+            font-family: 'Baloo 2', cursive; font-size: 36px; font-weight: 900; line-height: 1.1; margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 2px;
+            background: linear-gradient(90deg, #ffde59, #ffffff, #ffde59, #ff66c4, #ffde59);
+            background-size: 300% auto; color: transparent; -webkit-background-clip: text; background-clip: text;
+            animation: shineAnim 4s linear infinite; filter: drop-shadow(0 4px 10px rgba(255,222,89,0.4));
+        }
+        @keyframes shineAnim { to { background-position: 300% center; } }
+
+        .reg-dark-input {
+            width: 100%; padding: 18px 20px; font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif;
+            background: rgba(0, 0, 0, 0.4); color: #fff; border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px; outline: none; transition: 0.3s; letter-spacing: 1px;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5); margin-bottom: 8px;
+        }
+        select.reg-dark-input option { color: #000; font-weight: 700; }
+        .reg-dark-input::placeholder { color: rgba(255,255,255,0.3); font-weight: 700; text-transform: none; letter-spacing: 1px;}
+        .reg-dark-input:focus { border-color: var(--cute-yellow); background: rgba(0,0,0,0.6); box-shadow: 0 0 20px rgba(255, 222, 89, 0.2), inset 0 5px 15px rgba(0,0,0,0.5); transform: translateY(-2px);}
+
+        .live-status { font-family: 'Fredoka', sans-serif; font-size: 11px; font-weight: 700; margin-bottom: 15px; padding-left: 10px; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; height: 15px; text-align: left; }
+        .status-green { color: var(--success-green); }
+        .status-red { color: var(--error-red); }
+
+        .step-container { transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        /* ================= GENERAL INPUTS ================= */
+        .input-wrapper { position: relative; margin-bottom: 10px; text-align: left; }
+        .input-label { font-family: 'Fredoka', sans-serif; font-size: 12px; font-weight: 700; color: var(--cute-yellow); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px; display: block; margin-left: 10px;}
+        
+        .premium-input {
+            width: 100%; padding: 15px 20px; font-size: 16px; font-weight: 800; font-family: 'Nunito', sans-serif;
+            background: rgba(255,255,255,0.15); color: #fff; border: 2px solid transparent;
+            border-radius: 18px; outline: none; transition: 0.3s; letter-spacing: 1px;
+            box-shadow: inset 0 5px 10px rgba(0,0,0,0.1);
+        }
+        select.premium-input option { color: #000; font-weight: 700; }
+        input[type="datetime-local"].premium-input, input[type="date"].premium-input { font-family: 'Nunito', sans-serif; text-transform: uppercase; font-size: 14px; color: #fff;}
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator, input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+        .premium-input::placeholder { color: rgba(255,255,255,0.5); font-weight: 700; text-transform: none; letter-spacing: 1px;}
+        .premium-input:focus { border-color: var(--cute-yellow); background: rgba(255,255,255,0.25); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+
+        /* ================= GAME SCREEN ================= */
+        .game-wrapper { text-align: center; max-width: 500px; width: 100%; display: flex; flex-direction: column; align-items: center;}
+        .game-logo { font-size: 3.5rem; color: var(--cute-yellow); margin-bottom: 10px; filter: drop-shadow(0 5px 15px rgba(255, 222, 89, 0.4)); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .game-title { font-size: 4rem; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; color: #ffffff; font-family: 'Baloo 2', cursive; text-shadow: 0px 6px 0px rgba(0,0,0,0.15), 0px 10px 15px rgba(0,0,0,0.3); line-height: 1; }
+
+        .spin-counter { background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3); backdrop-filter: blur(5px); padding: 10px 30px; border-radius: 40px; font-size: 15px; font-weight: 900; color: #fff; letter-spacing: 2px; margin-bottom: 30px; display: inline-flex; align-items: center; gap: 10px; text-transform: uppercase; font-family: 'Fredoka', sans-serif; box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .spin-counter span { color: var(--cute-yellow); font-size: 20px; }
+
+        .slot-machine-container { background: rgba(255, 255, 255, 0.15); border-radius: 25px; padding: 30px 25px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.2), inset 0 0 20px rgba(255,255,255,0.3); border: 2px solid rgba(255,255,255,0.4); position: relative; margin-bottom: 40px; backdrop-filter: blur(15px); transition: all 0.3s ease; }
+        .slot-machine-container::before { content: ''; position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px; background: linear-gradient(45deg, var(--cute-pink), var(--cute-yellow), var(--cute-green), var(--cute-violet)); z-index: -1; border-radius: 35px; filter: blur(25px); opacity: 0.6; animation: auraSpin 6s linear infinite; }
+        @keyframes auraSpin { 0% { filter: blur(25px) hue-rotate(0deg); } 100% { filter: blur(25px) hue-rotate(360deg); } }
+        .jackpot-win { border-color: var(--cute-yellow) !important; box-shadow: 0 0 60px rgba(255,222,89,0.6), inset 0 0 40px rgba(255,222,89,0.4) !important; animation: winPulse 0.6s infinite alternate; }
+        @keyframes winPulse { 0% { transform: scale(1); } 100% { transform: scale(1.03); } }
+
+        .slot-machine-inner { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 25px; }
+        .slot-window { flex: 1; height: 120px; background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; box-shadow: inset 0 15px 25px rgba(0,0,0,0.2), inset 0 -5px 10px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.2); border: 2px solid #fff; }
+        .slot-content { font-size: 75px; font-weight: 900; position: absolute; font-family: 'Baloo 2', cursive; will-change: transform; text-shadow: 0px 4px 0px rgba(0,0,0,0.2), 0px 8px 10px rgba(0,0,0,0.3); }
+
+        .is-spinning { animation: cuteScroll 0.1s linear infinite; filter: blur(1px); opacity: 0.9;}
+        @keyframes cuteScroll { 0% { transform: translateY(-80%); opacity: 0.8; } 50% { opacity: 1; } 100% { transform: translateY(80%); opacity: 0.8; } }
+        .bounce-stop { animation: cuteBounce 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        @keyframes cuteBounce { 0% { transform: translateY(-50px) scale(0.8); } 50% { transform: translateY(15px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
+
+        .rgb-win { animation: rgbPulse 0.3s linear infinite !important; transform: scale(1.15) !important;}
+        @keyframes rgbPulse { 0% { color: #ff0000; text-shadow: 0 0 25px #ff0000; } 20% { color: #ff7f00; text-shadow: 0 0 25px #ff7f00; } 40% { color: #ffff00; text-shadow: 0 0 25px #ffff00; } 60% { color: #00ff00; text-shadow: 0 0 25px #00ff00; } 80% { color: #0000ff; text-shadow: 0 0 25px #0000ff; } 100% { color: #8b00ff; text-shadow: 0 0 25px #8b00ff; } }
+
+        .result-display { font-family: 'Fredoka', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #fff; text-transform: uppercase; background: rgba(0,0,0,0.4); padding: 18px; border-radius: 12px; border: 2px dashed rgba(255,255,255,0.4); transition: 0.3s; }
+
+        .btn-action { width: 100%; background: var(--cute-yellow); color: #a67c00; border: none; padding: 20px; font-size: 20px; font-weight: 900; text-transform: uppercase; border-radius: 50px; cursor: pointer; transition: 0.2s; box-shadow: 0 8px 0 #d4a000, 0 15px 25px rgba(0,0,0,0.3); font-family: 'Fredoka', sans-serif; margin-top: 10px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; letter-spacing: 3px; }
+        .btn-action:active { transform: translateY(8px); box-shadow: 0 0 0 #d4a000, 0 5px 10px rgba(0,0,0,0.2); }
+        .btn-action:disabled { background: var(--cute-yellow); filter: brightness(0.8); color: #8a6300; box-shadow: 0 5px 0 #b38600; cursor: not-allowed; transform: translateY(3px); }
+
+        /* --- FINAL SCREENS --- */
+        .final-box { text-align: center; padding: 50px 30px; background: var(--card-glass); backdrop-filter: blur(25px); border: 3px solid var(--card-border); border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); max-width: 450px; width: 90%; animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); margin: auto; }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .final-icon { font-size: 80px; margin-bottom: 20px; }
+        .win-icon { color: var(--cute-gold); filter: drop-shadow(0 0 20px var(--cute-gold)); animation: bounceLogo 2s infinite;}
+        .lose-icon { color: var(--cute-pink); filter: drop-shadow(0 0 20px var(--cute-pink)); animation: bounceLogo 3s infinite;}
+        .final-title { font-family: 'Baloo 2', cursive; font-size: 45px; line-height: 1.1; margin-bottom: 10px; text-transform: uppercase; }
+        .win-title { color: var(--cute-gold); text-shadow: 2px 2px 0 #b27300; }
+        .lose-title { color: #fff; text-shadow: 2px 2px 0 var(--cute-violet); }
+        .final-desc { font-size: 16px; font-weight: 700; color: #e0f7fa; margin-bottom: 30px; line-height: 1.5; }
+        .prize-highlight { display: block; font-size: 26px; font-weight: 900; color: var(--cute-pink); margin-top: 10px; text-shadow: 0 0 10px rgba(255,102,196,0.5); font-family: 'Fredoka';}
+
+        /* --- LOADING & OTP OVERLAYS --- */
+        .loading-overlay, .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh; background: rgba(18, 4, 40, 0.95); backdrop-filter: blur(15px); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .loading-overlay.active, .custom-alert-overlay.active { opacity: 1; pointer-events: auto; }
+        .load-spinner { font-size: 60px; color: var(--cute-gold); animation: spinPaw 1s linear infinite; margin-bottom: 20px; filter: drop-shadow(0 0 15px var(--cute-gold));}
+        @keyframes spinPaw { 100% { transform: rotate(360deg); } }
+        .load-text { font-family: 'Fredoka'; font-size: 20px; color: #fff; letter-spacing: 3px; animation: pulseGrid 1s infinite alternate;}
+
+        .otp-number { font-family: 'Baloo 2'; font-size: 45px; font-weight: 900; color: var(--cute-yellow); letter-spacing: 15px; margin: 20px 0; text-shadow: 0 0 15px rgba(255,222,89,0.5); }
+
+        /* --- COUNTDOWN PAGE --- */
+        .cd-box { text-align: center; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.2); border-radius: 30px; padding: 40px 20px; max-width: 400px; width: 90%; margin: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .cd-title { font-family: 'Baloo 2'; font-size: 32px; color: var(--success-green); margin-bottom: 5px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0,230,118,0.4); }
+        .cd-subtitle { font-family: 'Fredoka'; font-size: 14px; color: #ccc; margin-bottom: 30px; letter-spacing: 1px; line-height: 1.5; }
+        .cd-grid { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;}
+        .cd-item { display: flex; flex-direction: column; align-items: center; background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; width: 75px; box-shadow: inset 0 0 10px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);}
+        .cd-num { font-family: 'Baloo 2'; font-size: 30px; font-weight: 900; color: var(--cute-gold); line-height: 1; }
+        .cd-label { font-family: 'Fredoka'; font-size: 10px; text-transform: uppercase; color: #fff; margin-top: 5px; letter-spacing: 1px; }
+
+        /* --- PREMIUM CUSTOM ALERTS --- */
+        .alert-box { background: rgba(40, 15, 80, 0.95); border-radius: 25px; padding: 30px; text-align: center; width: 85%; max-width: 350px; transform: scale(0.8) translateY(20px); opacity: 0; transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); border: 2px solid #555; }
+        .custom-alert-overlay.active .alert-box { transform: scale(1) translateY(0); opacity: 1; }
+        .alert-error { border: 3px solid var(--error-red); box-shadow: 0 0 30px rgba(255,51,102,0.3), inset 0 0 20px rgba(255,51,102,0.2); }
+        .alert-error .alert-icon { color: var(--error-red); animation: shakeIcon 0.5s; }
+        .alert-success { border: 3px solid var(--success-green); box-shadow: 0 0 30px rgba(0,230,118,0.3), inset 0 0 20px rgba(0,230,118,0.2); }
+        .alert-success .alert-icon { color: var(--success-green); animation: bounceLogo 1s infinite; }
+        .alert-admin { border: 3px solid var(--cute-gold); box-shadow: 0 0 30px rgba(255,222,89,0.3), inset 0 0 20px rgba(255,222,89,0.2); }
+        .alert-admin .alert-icon { color: var(--cute-gold); animation: floatLogo 2s infinite; }
+        @keyframes shakeIcon { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-10px);} 75%{transform:translateX(10px);} }
+        @keyframes floatLogo { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-10px);} }
+        .alert-icon { font-size: 50px; margin-bottom: 15px; filter: drop-shadow(0 0 10px currentColor); }
+        .alert-title { font-family: 'Fredoka'; font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;}
+        .alert-message { font-family: 'Nunito'; font-size: 14px; color: #eee; margin-bottom: 25px; line-height: 1.5; font-weight: 600;}
+        .alert-btn { background: #fff; color: #000; border: none; padding: 12px 30px; font-family: 'Fredoka'; font-size: 16px; font-weight: 700; border-radius: 15px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; transition: 0.2s; width: 100%; margin-bottom: 10px;}
+        .alert-btn:active { transform: scale(0.95); }
+
+        /* --- LONG PRESS DELETE OVERLAY --- */
+        .delete-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,51,102,0.95); backdrop-filter:blur(5px); border-radius:inherit; display:flex; align-items:center; justify-content:center; z-index:20; animation: popIn 0.3s; flex-direction: column; gap:10px; }
+        .cancel-del-btn { position:absolute; top:8px; right:12px; background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer; padding:5px;}
+        .confirm-del-btn { background:#000; color:#fff; border:2px solid var(--error-red); padding:12px 25px; border-radius:15px; font-weight:900; font-size:14px; font-family:'Fredoka'; letter-spacing:1px; cursor:pointer; box-shadow:0 5px 15px rgba(0,0,0,0.5); }
+
+        /* --- ADMIN SCREENS --- */
+        .admin-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; width: 100%; max-width: 420px;}
+        .admin-nav-btn { background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2); color: #fff; padding: 25px 10px; border-radius: 20px; font-family: 'Fredoka'; font-size: 14px; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); text-align: center;}
+        .admin-nav-btn i { font-size: 30px; color: var(--cute-yellow); }
+        .admin-nav-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--cute-yellow); transform: translateY(-5px); }
+        .btn-secondary { background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.3); color: #fff; padding: 18px; border-radius: 20px; font-family: 'Fredoka'; font-weight: 700; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; width: 100%; max-width: 420px; margin-top: 15px; font-size: 14px;}
+        .btn-secondary:hover { border-color: var(--error-red); color: var(--error-red); }
+        .admin-box-large { width: 100%; max-width: 500px; margin: auto; padding: 20px 0; }
+        .rig-card { background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.15); border-radius: 25px; padding: 20px; margin-bottom: 20px; text-align: left; }
+        .rig-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        .rig-type { font-family: 'Fredoka'; font-size: 18px; color: #fff; font-weight: 900; letter-spacing: 1px;}
+        .custom-name-input { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 12px 15px; border-radius: 12px; font-family: 'Nunito'; font-size: 13px; font-weight: bold; outline: none; width: 60%; letter-spacing: 1px;}
+        .custom-name-input:focus { border-color: var(--cute-yellow); }
+        .rig-body { display: flex; justify-content: space-between; align-items: center; }
+        .rig-boxes { display: flex; gap: 8px; }
+        .rig-box { width: 45px; height: 50px; text-align: center; font-size: 26px; font-weight: 900; font-family: 'Baloo 2'; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.6); color: var(--text-main); outline: none; transition: 0.2s;}
+        .btn-add-rig { color: #000; border: none; padding: 15px 20px; border-radius: 15px; font-weight: 900; font-family: 'Fredoka'; cursor: pointer; transition: 0.2s; font-size: 14px;}
+        .btn-add-rig:active { transform: translateY(4px); }
+        .active-rigs-container { background: rgba(0,0,0,0.25); border: 2px dashed rgba(255,255,255,0.2); border-radius: 25px; padding: 20px; margin-top: 25px; text-align: left;}
+        .active-rigs-title { font-family: 'Fredoka'; font-size: 14px; color: var(--cute-yellow); margin-bottom: 20px; text-align: center; letter-spacing: 1.5px;}
+        .active-item { background: rgba(0,0,0,0.4); border-radius: 15px; padding: 15px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--cute-yellow);}
+        .active-info { display: flex; flex-direction: column; gap: 5px;}
+        .active-nums { font-family: 'Baloo 2'; font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 4px;}
+        .active-reward { font-size: 12px; color: #ccc; font-weight: bold; text-transform: uppercase;}
+        .btn-del { background: transparent; color: var(--error-red); border: none; font-size: 20px; cursor: pointer; transition: 0.2s;}
+        .btn-del:hover { transform: scale(1.2); }
+
+        /* ================= USER LIST & DATA CENTER CSS ================= */
+        .user-list-container { width: 100%; max-height: 450px; overflow-y: auto; margin-top: 15px; padding-right: 5px;}
+        .user-list-container::-webkit-scrollbar { width: 5px; }
+        .user-list-container::-webkit-scrollbar-thumb { background: var(--cute-yellow); border-radius: 10px; }
+        .user-list-item { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: flex-start; align-items: center; gap: 15px; color: #fff; cursor: pointer; transition: 0.2s; text-align: left; position: relative; overflow: hidden; }
+        .user-list-item.blocked { border-color: var(--error-red); background: rgba(255,51,102,0.1); }
+        .user-list-item.canceled { border-color: #555; background: rgba(100,100,100,0.2); filter: grayscale(1); }
+        .user-list-item:active { transform: scale(0.98); }
+        .user-sl { font-family: 'Baloo 2'; font-weight: 900; color: var(--cute-yellow); font-size: 22px; min-width: 25px; text-align: center;}
+        .user-info-brief { display: flex; flex-direction: column; width: 100%; }
+        .user-info-name { font-family: 'Fredoka'; font-size: 16px; font-weight: 700; color: #fff; display: flex; justify-content: space-between;}
+        .user-info-uid { font-size: 11px; color: #aaa; font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 1px;}
+        .user-info-date { font-size: 10px; color: var(--success-green); margin-top: 5px; font-weight: bold; letter-spacing: 1px;}
+
+        .data-card { background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 18px; margin-bottom: 20px; width: 100%; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .dc-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.2); padding-bottom: 12px; margin-bottom: 15px;}
+        .dc-name { font-family: 'Baloo 2'; font-size: 22px; color: var(--cute-yellow); font-weight: 900; text-transform: uppercase; letter-spacing: 1px;}
+        .dc-badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 900; font-family: 'Fredoka'; letter-spacing: 1.5px; text-transform: uppercase; }
+        .bg-active { background: rgba(0,230,118,0.15); color: #00e676; border: 1px solid #00e676; }
+        .bg-pending { background: rgba(51,204,255,0.15); color: #33ccff; border: 1px solid #33ccff; }
+        .bg-blocked { background: rgba(255,222,89,0.15); color: var(--cute-yellow); border: 1px solid var(--cute-yellow); }
+        .bg-canceled { background: rgba(255,51,102,0.15); color: var(--error-red); border: 1px solid var(--error-red); }
+        .dc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dc-item { display: flex; flex-direction: column; font-family: 'Nunito'; font-size: 14px; color: #fff; font-weight: 700; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px;}
+        .dc-item span { font-size: 10px; color: #aaa; text-transform: uppercase; font-weight: 900; margin-bottom: 4px; letter-spacing: 1px;}
+        .dc-full { grid-column: span 2; display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: rgba(255,222,89,0.1); border: 1px solid rgba(255,222,89,0.2);}
+        .dc-full .dc-spin-res { text-align: right;}
+        .dc-num-box { display: inline-block; background: #000; padding: 4px 10px; border-radius: 8px; font-family: 'Baloo 2'; font-size: 18px; letter-spacing: 3px; color: var(--cute-pink); margin-top: 5px;}
+        .dc-tabs { display: flex; gap: 10px; margin-bottom: 15px; width: 100%; justify-content: center; }
+        .dc-tab-btn { background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.2); color: #aaa; padding: 12px 20px; border-radius: 15px; font-family: 'Fredoka'; font-weight: 700; cursor: pointer; transition: 0.3s; flex: 1; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; }
+        .dc-tab-btn.active { background: var(--cute-yellow); color: #000; border-color: var(--cute-yellow); box-shadow: 0 5px 15px rgba(255,222,89,0.3); }
+
+        /* ================= NEW: SINGLE LINE MARQUEE SYSTEM ================= */
+        .notice-container { position: absolute; top: 12px; left: 0; width: 100%; z-index: 100; pointer-events: none; }
+        .notice-bar { width: 100%; overflow: hidden; background: transparent; border: none; white-space: nowrap; display: flex; align-items: center; padding: 0; pointer-events: none; }
+        .notice-scroll { display: inline-block; padding-left: 100%; animation-name: scrollLeft; animation-timing-function: linear; animation-iteration-count: infinite; pointer-events: auto;}
+        @keyframes scrollLeft { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .notice-item { display: inline-flex; align-items: center; gap: 8px; margin-right: 50px; font-family: 'Fredoka', sans-serif; font-size: 12px; } /* Smaller text size */
+        
+        .tag-badge { padding: 3px 8px; border-radius: 6px; font-weight: 900; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,0,0,0.5);}
+        .tag-NEW { background: linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000); background-size: 400%; animation: rgbShine 3s linear infinite; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
+        @keyframes rgbShine { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        .tag-OLD { background: #555; color: #fff; }
+        .tag-OPEN { background: var(--success-green); color: #000; }
+        .tag-CLOSE { background: var(--error-red); color: #fff; }
+        .notice-date { font-size: 10px; color: #ccc; background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; letter-spacing: 1px; font-family: 'Nunito'; }
+
+        /* 20 Marquee Styles */
+        .mq-1 { color: #fff; }
+        .mq-2 { color: #ffde59; text-shadow: 0 0 10px rgba(255,222,89,0.8); }
+        .mq-3 { color: #ff66c4; text-shadow: 0 0 10px rgba(255,102,196,0.8); }
+        .mq-4 { color: #00e676; text-shadow: 0 0 10px rgba(0,230,118,0.8); }
+        .mq-5 { color: #33ccff; text-shadow: 0 0 10px rgba(51,204,255,0.8); }
+        .mq-6 { color: #b066ff; text-shadow: 0 0 10px rgba(176,102,255,0.8); }
+        .mq-7 { color: #ff3366; text-decoration: underline; text-decoration-style: dotted; }
+        .mq-8 { color: #fff; background: rgba(255,255,255,0.1); padding: 2px 12px; border: 1px dashed #fff; border-radius: 20px;}
+        .mq-9 { color: #ffde59; font-style: italic; font-weight: 900; }
+        .mq-10 { color: #fff; letter-spacing: 5px; text-transform: uppercase; font-weight: 900; }
+        .mq-11 { background: linear-gradient(90deg, #ffde59, #ff66c4, #33ccff); -webkit-background-clip: text; color: transparent; font-weight: 900; }
+        .mq-12 { color: #fff; text-shadow: -2px 2px 0 #ff0000; font-weight: 900;}
+        .mq-13 { color: #fff; text-shadow: -2px 2px 0 #0000ff; font-weight: 900;}
+        .mq-14 { background: linear-gradient(to bottom, #ffde59, #a67c00); -webkit-background-clip: text; color: transparent; font-weight: 900; }
+        .mq-15 { color: #fff; box-shadow: inset 0 -10px 0 rgba(255,102,196,0.6); }
+        .mq-16 { color: #fff; -webkit-text-stroke: 1px #000; font-weight: 900; }
+        .mq-17 { color: #000; background: #ffde59; padding: 2px 10px; font-weight: 900; border-radius: 5px;}
+        .mq-18 { color: #33ccff; text-decoration: underline; text-decoration-style: wavy; }
+        .mq-19 { color: #00e676; text-decoration: underline; text-decoration-style: double; }
+        .mq-20 { color: #fff; text-shadow: 1px 1px 0 #ccc, 2px 2px 0 #999, 3px 3px 0 #666; font-weight: 900; }
+
+        .admin-notice-item { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 15px; padding: 15px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+        .admin-notice-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 10px;}
+        .admin-notice-text { color: #fff; font-family: 'Fredoka'; font-size: 14px; line-height: 1.5; }
+
+        /* --- AESTHETIC CLOSED SCREEN --- */
+        #closedScreen { background: radial-gradient(circle at center, #2a0845 0%, #6441A5 100%); }
+        .magic-circle { position: relative; width: 160px; height: 160px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+        .spinning-chakra { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 4px dashed var(--cute-pink); border-radius: 50%; animation: spinChakra 10s linear infinite; box-shadow: 0 0 30px rgba(255,102,196,0.5), inset 0 0 20px rgba(138,43,226,0.5); pointer-events: none;}
+        .spinning-chakra::before { content: ''; position: absolute; top: -12px; left: -12px; right: -12px; bottom: -12px; border: 3px dotted var(--cute-yellow); border-radius: 50%; animation: spinChakraReverse 15s linear infinite; }
+        @keyframes spinChakra { 100% { transform: rotate(360deg); } }
+        @keyframes spinChakraReverse { 100% { transform: rotate(-360deg); } }
+        @keyframes pulseText { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- UI Sounds -->
+    <audio id="sndClick" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="sndSpin" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" loop preload="auto"></audio>
+    <audio id="sndStop" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
+    <audio id="sndWin" src="https://assets.mixkit.co/active_storage/sfx/2002/2002-preview.mp3" preload="auto"></audio>
+    <audio id="sndLose" src="https://assets.mixkit.co/active_storage/sfx/2004/2004-preview.mp3" preload="auto"></audio>
+    <audio id="sndLoadWin" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" preload="auto"></audio>
+    <audio id="sndLoadLose" src="https://assets.mixkit.co/active_storage/sfx/2005/2005-preview.mp3" preload="auto"></audio>
+    <audio id="sndAlertErr" src="https://assets.mixkit.co/active_storage/sfx/2954/2954-preview.mp3" preload="auto"></audio>
+    <audio id="sndAlertSucc" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+
+    <div class="bg-pattern"></div>
+    <div class="floating-elements">
+        <i class="fas fa-paw fpaw admin-trigger"></i><i class="fas fa-paw fpaw admin-trigger"></i><i class="fas fa-paw fpaw admin-trigger"></i>
+        <i class="fas fa-star fstar"></i><i class="fas fa-star fstar"></i><i class="fas fa-sparkles fstar"></i><i class="fas fa-star fstar"></i><i class="fas fa-sparkles fstar"></i>
+    </div>
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- ================= ALERTS & LOADERS ================= -->
+    <div class="custom-alert-overlay" id="customAlertOverlay">
+        <div class="alert-box" id="alertBox">
+            <i class="fas fa-info-circle alert-icon" id="alertIcon"></i>
+            <h3 class="alert-title" id="alertTitle">Attention</h3>
+            <p class="alert-message" id="alertMsg">Message goes here</p>
+            <button class="alert-btn" id="alertBtn" style="background:#fff; color:#000;" onclick="closeCustomAlert()">OKAY</button>
+        </div>
+    </div>
+    
+    <!-- OTP VERIFICATION OVERLAY -->
+    <div class="custom-alert-overlay" id="otpOverlay">
+        <div class="alert-box" style="border: 3px solid var(--success-green); box-shadow: 0 0 40px rgba(0,230,118,0.4); background: #0a1f12;">
+            <h3 class="alert-title" style="color:var(--success-green); font-size:22px;"><i class="fas fa-shield-alt"></i> SYSTEM AUTHENTICATION</h3>
+            <div id="otpNumbers" class="otp-number">000000</div>
+            <p style="font-family:'Nunito'; font-size:13px; color:#aaa; font-weight:700;">Verifying Secret Ticket Protocol...</p>
+        </div>
+    </div>
+
+    <!-- TICKET DETAILS POP-UP MODAL -->
+    <div class="custom-alert-overlay" id="ticketDetailsOverlay">
+        <div class="alert-box" style="border: 3px solid var(--cute-yellow); box-shadow: 0 0 30px rgba(255,222,89,0.3); background: #1a0b33;">
+            <h3 class="alert-title" id="tdTitle" style="color: var(--cute-yellow); font-size:26px; text-transform:uppercase; margin-bottom: 15px;">Ticket Details</h3>
+            <div id="tdDetails" style="text-align: left; font-size: 13px; color: #ddd; margin-bottom: 20px; line-height: 1.8; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; font-family:'Nunito'; border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="alert-btn" style="background: #444; color: #fff; border-radius: 20px; padding: 15px; font-weight: 900;" onclick="closeTicketDetails()">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Action Modal for Admin -->
+    <div class="custom-alert-overlay" id="userActionOverlay">
+        <div class="alert-box" style="border: 3px solid var(--cute-violet); box-shadow: 0 0 30px rgba(138,43,226,0.3); background: #1a0b33;">
+            <h3 class="alert-title" id="uaTitle" style="color: var(--cute-gold); font-size:26px; text-transform:uppercase; margin-bottom: 15px;">User Details</h3>
+            <div id="uaDetails" style="text-align: left; font-size: 13px; color: #ddd; margin-bottom: 20px; line-height: 1.8; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 12px; font-family:'Nunito'; border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <button class="alert-btn" id="uaBtnBlock" style="border-radius: 20px; padding: 15px; font-weight: 900;" onclick="toggleBlockUser()">
+                    <i class="fas fa-ban"></i> BLOCK USER
+                </button>
+                <button class="alert-btn" id="uaBtnCancel" style="background: var(--error-red); color: #fff; border-radius: 20px; padding: 15px; font-weight: 900;" onclick="cancelRegistrationUser()">
+                    CANCEL REGISTRATION
+                </button>
+                <button class="alert-btn" style="background: #444; color: #fff; border-radius: 20px; padding: 15px; font-weight: 900;" onclick="closeUserAction()">
+                    CLOSE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <i class="fas fa-paw load-spinner"></i>
+        <div class="load-text" id="loadingTextDisplay">ANALYZING...</div>
+    </div>
+
+    <!-- ================= 0. CLOSED / OFFLINE SCREEN (NEW AESTHETIC) ================= -->
+    <div class="screen scrollable active" id="closedScreen">
+        <div class="center-wrap">
+            <div class="auth-container" style="background: transparent; border: none; box-shadow: none;">
+                <div class="magic-circle">
+                    <i class="fas fa-paw auth-logo admin-trigger" style="font-size: 80px; position: relative; z-index: 2; margin:0;"></i>
+                    <div class="spinning-chakra"></div>
+                </div>
+                <h2 class="auth-title" style="font-size: 38px; color:var(--cute-yellow); margin-top: 25px; text-shadow: 0 0 20px rgba(255,222,89,0.8); animation: pulseText 2s infinite;">EVENT CLOSED</h2>
+                <p class="auth-subtitle" id="closedMsg" style="font-size: 16px; line-height: 1.6; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.5); font-weight: 900;">The system is currently offline.</p>
+                
+                <div style="display:flex; justify-content:center; gap: 20px; margin-top: 30px; font-size: 26px; color: rgba(255,255,255,0.4);">
+                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-clock"></i>
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 1. PUBLIC REGISTRATION PORTAL (LIVE VALIDATION) ================= -->
+    <div class="screen scrollable" id="publicRegScreen">
+        <div class="notice-container" id="regNoticesTop"></div> <!-- NOTICE MARQUEE INJECTED HERE -->
+        <div class="center-wrap" style="justify-content: flex-start; padding-top: 60px;">
+            <div class="full-reg-wrapper">
+                <i class="fas fa-paw auth-logo admin-trigger" style="font-size: 65px; margin-bottom: 15px;"></i>
+                <h2 class="shine-text">SPIN EVENT REGISTRATION</h2>
+                <p class="auth-subtitle" style="color: #ffb3d9; font-size: 15px; letter-spacing: 2px; margin-bottom: 30px;">Verify your Identity to Participate</p>
+                
+                <div id="regStep1" class="step-container">
+                    
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">Application ID (UID)</span>
+                        <input type="text" id="pubRegAppId" class="reg-dark-input" placeholder="Enter App ID" autocomplete="off" oninput="this.value = this.value.toUpperCase(); liveValidate('pubRegAppId', 'appId')">
+                        <div id="status-pubRegAppId" class="live-status"></div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">Real Name</span>
+                        <input type="text" id="pubRegRealName" class="reg-dark-input" placeholder="Enter Real Name" autocomplete="off" spellcheck="false" oninput="liveValidate('pubRegRealName', 'realName')">
+                        <div id="status-pubRegRealName" class="live-status"></div>
+                    </div>
+                    
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">In-Game Name</span>
+                        <input type="text" id="pubRegIgn" class="reg-dark-input" placeholder="Enter In-Game Name" autocomplete="off" spellcheck="false" oninput="liveValidate('pubRegIgn', 'inGameName')">
+                        <div id="status-pubRegIgn" class="live-status"></div>
+                    </div>
+                    
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">Game ID</span>
+                        <input type="text" id="pubRegGameId" class="reg-dark-input" placeholder="Free Fire Game ID" autocomplete="off" oninput="liveValidate('pubRegGameId', 'gameId')">
+                        <div id="status-pubRegGameId" class="live-status"></div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">Guild Role</span>
+                        <select id="pubRegRole" class="reg-dark-input" style="appearance: none; cursor:pointer;" onchange="liveValidate('pubRegRole', 'role')">
+                            <option value="">Select Role</option>
+                            <option value="Member">Member</option>
+                            <option value="Elder">Elder</option>
+                            <option value="Acting Guild Leader">Acting Guild Leader</option>
+                        </select>
+                        <div id="status-pubRegRole" class="live-status"></div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label" style="color:var(--cute-yellow); margin-left:5px;">Secret Code</span>
+                        <input type="text" id="pubRegCode" class="reg-dark-input" placeholder="Enter Secret Code" autocomplete="off" oninput="this.value = this.value.toUpperCase(); liveValidate('pubRegCode', 'code')">
+                        <div id="status-pubRegCode" class="live-status"></div>
+                    </div>
+
+                    <button class="btn-action" style="font-size: 18px; padding: 18px; margin-top: 15px; background: var(--cute-yellow); color: #000;" onclick="submitPublicRegistrationLive()">VERIFY & ENROLL <i class="fas fa-lock" style="margin-left: 5px;"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 2. COUNTDOWN SCREEN ================= -->
+    <div class="screen scrollable" id="countdownScreen">
+        <div class="center-wrap">
+            <div class="cd-box">
+                <i class="fas fa-paw auth-logo admin-trigger" style="font-size:45px; margin-bottom:15px;"></i>
+                <h2 class="cd-title">REGISTRATION COMPLETE</h2>
+                <p class="cd-subtitle">Your device is verified. The Spin Portal will open automatically when the event starts.</p>
+                
+                <h3 style="font-family:'Fredoka'; font-size:16px; color:#fff; margin-bottom:15px; letter-spacing:2px;">EVENT STARTS IN</h3>
+                <div class="cd-grid">
+                    <div class="cd-item"><span class="cd-num" id="cdDays">00</span><span class="cd-label">Days</span></div>
+                    <div class="cd-item"><span class="cd-num" id="cdHours">00</span><span class="cd-label">Hrs</span></div>
+                    <div class="cd-item"><span class="cd-num" id="cdMins">00</span><span class="cd-label">Mins</span></div>
+                    <div class="cd-item"><span class="cd-num" id="cdSecs">00</span><span class="cd-label">Secs</span></div>
+                </div>
+                <p style="font-size:11px; color:var(--cute-pink); margin-top:20px; font-weight:700;">Please do not clear your browser cache.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 3. SPIN LOGIN PORTAL ================= -->
+    <div class="screen scrollable" id="authScreen">
+        <div class="notice-container" id="spinNoticesTop"></div> <!-- NOTICE MARQUEE INJECTED HERE -->
+        <div class="center-wrap" style="padding-top: 60px;">
+            <div class="auth-container">
+                <i class="fas fa-paw auth-logo admin-trigger"></i>
+                <h2 class="auth-title">LUCKY SLOTS</h2>
+                <p class="auth-subtitle">Official Guild Event Login</p>
+
+                <div class="input-wrapper" style="margin-top: 20px;">
+                    <span class="input-label">Application ID (UID)</span>
+                    <input type="text" id="loginAppIdInput" class="premium-input" placeholder="Enter App ID" autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase();">
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label">Ticket Code</span>
+                    <input type="text" id="loginTicketCodeInput" class="premium-input" placeholder="Enter Code" autocomplete="off" spellcheck="false" oninput="this.value = this.value.toUpperCase();">
+                </div>
+
+                <button class="btn-action" id="authBtn" onclick="verifyLoginCode()" style="margin-top: 20px;">LOGIN TO SPIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 4. MAIN GAME SCREEN ================= -->
+    <div class="screen scrollable" id="gameScreen">
+        <div class="center-wrap">
+            <div class="game-wrapper">
+                <div class="game-logo admin-trigger"><i class="fas fa-paw"></i></div>
+                <h3 class="game-title">LUCKY SLOTS</h3>
+                
+                <div class="spin-counter">
+                    <i class="fas fa-bolt" style="color:var(--cute-gold)"></i> SPINS LEFT: <span id="spinsLeftText">0</span>
+                </div>
+
+                <div class="slot-machine-container" id="slotMachineBox">
+                    <div class="slot-machine-inner">
+                        <div class="slot-window"><div class="slot-content" id="slot1">7</div></div>
+                        <div class="slot-window"><div class="slot-content" id="slot2">7</div></div>
+                        <div class="slot-window"><div class="slot-content" id="slot3">7</div></div>
+                    </div>
+                    <div id="resultDisplay" class="result-display">PRESS SPIN TO TEST YOUR LUCK</div>
+                </div>
+                
+                <button class="btn-action" id="spinBtn" onclick="triggerSpin()">SPIN NOW</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 5. FINAL WIN SCREEN ================= -->
+    <div class="screen scrollable" id="winScreen">
+        <div class="center-wrap">
+            <div class="final-box" style="border-color: var(--cute-gold);">
+                <i class="fas fa-crown final-icon win-icon admin-trigger"></i>
+                <h2 class="final-title win-title">JACKPOT!</h2>
+                <p class="final-desc">Congratulations! You are super lucky today. You have won:</p>
+                <span class="prize-highlight" id="winPrizeName">REWARD</span>
+                <button class="btn-action" style="margin-top: 30px; padding: 20px 40px; font-size: 18px;" onclick="location.reload()">CLAIM & EXIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= 6. FINAL LOSE SCREEN ================= -->
+    <div class="screen scrollable" id="loseScreen">
+        <div class="center-wrap">
+            <div class="final-box" style="border-color: var(--cute-pink);">
+                <i class="fas fa-heart-broken final-icon lose-icon admin-trigger"></i>
+                <h2 class="final-title lose-title">OH NO!</h2>
+                <p class="final-desc">You used all your spins but didn't match any winning combination.</p>
+                <span class="prize-highlight" style="color: #ffb3d9; font-size: 22px; text-shadow:none;">Better Luck Next Time!</span>
+                <button class="btn-action" style="margin-top: 30px; padding: 20px 40px; font-size: 18px; background: var(--cute-pink); color:#fff; box-shadow: 0 8px 0 #cc0066;" onclick="location.reload()">TRY AGAIN LATER</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: LOGIN SCREEN ================= -->
+    <div class="screen scrollable" id="adminLoginScreen">
+        <div class="center-wrap">
+            <div class="auth-container" style="max-width: 350px; border-color:var(--error-red);">
+                <i class="fas fa-user-shield auth-logo" style="color:var(--error-red); filter: drop-shadow(0 5px 15px rgba(255,51,102,0.5));"></i>
+                <h2 class="auth-title" style="font-size: 26px;">Admin Access</h2>
+                <p class="auth-subtitle">Restricted Zone</p>
+
+                <div class="input-wrapper">
+                    <span class="input-label" style="color:var(--error-red);">Username</span>
+                    <input type="text" id="adminUser" class="premium-input" placeholder="Username" style="border-color:rgba(255,51,102,0.3);">
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label" style="color:var(--error-red);">Password</span>
+                    <input type="password" id="adminPass" class="premium-input" placeholder="Password" style="border-color:rgba(255,51,102,0.3);">
+                </div>
+
+                <button class="btn-action" style="background:var(--error-red); color:#fff; box-shadow: 0 6px 0 #cc0033; font-size: 16px; padding: 15px;" onclick="verifyAdminLogin()">ENTER SECURE PANEL</button>
+                <button class="btn-secondary" style="margin-top: 15px; padding: 15px; font-size:12px;" onclick="location.reload()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: MAIN MENU ================= -->
+    <div class="screen scrollable" id="adminMainScreen">
+        <div class="center-wrap">
+            <div class="auth-container" style="max-width: 450px;">
+                <h2 class="main-title" style="color: var(--cute-gold); font-family: 'Baloo 2', cursive; font-size: 32px;">Admin Panel</h2>
+                <p class="sub-title" style="margin-bottom: 25px; color:#e0f7fa;">System Control Center</p>
+                
+                <div class="admin-nav" style="grid-template-columns: 1fr 1fr;">
+                    <div class="admin-nav-btn" onclick="switchScreen('adminRegScreen')">
+                        <i class="fas fa-ticket-alt"></i> Generate Ticket
+                    </div>
+                    <div class="admin-nav-btn" onclick="openGeneratedTickets()">
+                        <i class="fas fa-list-alt"></i> Generated Tickets
+                    </div>
+                    <div class="admin-nav-btn" onclick="switchScreen('adminRigScreen')">
+                        <i class="fas fa-sliders-h"></i> Rig Slots
+                    </div>
+                    <div class="admin-nav-btn" onclick="openUserList()">
+                        <i class="fas fa-users"></i> Registered Users
+                    </div>
+                    <div class="admin-nav-btn" onclick="openDataCenter()">
+                        <i class="fas fa-database"></i> Data Center
+                    </div>
+                    <div class="admin-nav-btn" onclick="switchScreen('adminSeasonScreen')">
+                        <i class="fas fa-calendar-alt"></i> Event Timer (Season)
+                    </div>
+                    <div class="admin-nav-btn" onclick="switchScreen('adminNewsScreen')" style="grid-column: span 2; border-color: var(--cute-yellow);">
+                        <i class="fas fa-bullhorn" style="color:var(--cute-yellow)"></i> News Headline Notice
+                    </div>
+                </div>
+                
+                <button class="btn-secondary" onclick="location.reload()">EXIT ADMIN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: NEWS HEADLINE (NEW) ================= -->
+    <div class="screen scrollable" id="adminNewsScreen">
+        <div class="center-wrap" style="justify-content: flex-start;">
+            <div class="admin-box-large">
+                <h2 class="main-title" style="color: var(--cute-yellow); font-family:'Baloo 2'; font-size:35px; margin-bottom:5px; text-align:center;">News Headline</h2>
+                <p class="sub-title" style="color:#aaa; font-family:'Fredoka'; font-size:12px; margin-bottom:20px; text-align:center;">Add Marquee Notices to Pages</p>
+                
+                <div class="auth-container" style="max-width:100%; padding: 25px 20px;">
+                    <input type="hidden" id="newsEditId" value="">
+                    
+                    <div style="display:flex; gap:10px;">
+                        <div class="input-wrapper" style="flex:1;">
+                            <span class="input-label">Target Page</span>
+                            <select id="newsTarget" class="premium-input" style="appearance:none; cursor:pointer;">
+                                <option value="reg">Registration Page</option>
+                                <option value="spin">Spin Login Page</option>
+                            </select>
+                        </div>
+                        <div class="input-wrapper" style="flex:1;">
+                            <span class="input-label">Tag</span>
+                            <select id="newsTag" class="premium-input" style="appearance:none; cursor:pointer;">
+                                <option value="NEW">NEW (RGB)</option>
+                                <option value="OLD">OLD</option>
+                                <option value="OPEN">OPEN</option>
+                                <option value="CLOSE">CLOSE</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label">Notice Text</span>
+                        <input type="text" id="newsText" class="premium-input" placeholder="e.g. Spin registration opens on 24.09.2026">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label">Date (Optional)</span>
+                        <input type="date" id="newsDate" class="premium-input">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <span class="input-label">Marquee Style (20 Styles)</span>
+                        <select id="newsStyle" class="premium-input" style="appearance:none; cursor:pointer;">
+                            <option value="mq-1">Style 1: Standard White</option>
+                            <option value="mq-2">Style 2: Neon Yellow</option>
+                            <option value="mq-3">Style 3: Neon Pink</option>
+                            <option value="mq-4">Style 4: Neon Green</option>
+                            <option value="mq-5">Style 5: Neon Cyan</option>
+                            <option value="mq-6">Style 6: Glowing Purple</option>
+                            <option value="mq-7">Style 7: Dotted Underline Red</option>
+                            <option value="mq-8">Style 8: Dashed Border Box</option>
+                            <option value="mq-9">Style 9: Italics Bold Yellow</option>
+                            <option value="mq-10">Style 10: Uppercase Spaced White</option>
+                            <option value="mq-11">Style 11: Rainbow Text (Gradient)</option>
+                            <option value="mq-12">Style 12: Red Shadow 3D</option>
+                            <option value="mq-13">Style 13: Blue Shadow 3D</option>
+                            <option value="mq-14">Style 14: Golden Gradient Text</option>
+                            <option value="mq-15">Style 15: Pink UnderGlow Box</option>
+                            <option value="mq-16">Style 16: White Text Dark Stroke</option>
+                            <option value="mq-17">Style 17: Classic Warning (Yellow Box)</option>
+                            <option value="mq-18">Style 18: Wavy Underline Blue</option>
+                            <option value="mq-19">Style 19: Double Underline Green</option>
+                            <option value="mq-20">Style 20: 3D Pop Out Text</option>
+                        </select>
+                    </div>
+
+                    <div class="input-wrapper" style="margin-bottom:20px;">
+                        <span class="input-label" style="display:flex; justify-content:space-between;">
+                            <span>Marquee Speed (FPS)</span>
+                            <span id="newsFpsVal" style="color:var(--success-green);">100 FPS</span>
+                        </span>
+                        <input type="range" id="newsSpeed" class="range-slider" min="1" max="200" value="100" oninput="document.getElementById('newsFpsVal').innerText = this.value + ' FPS'" style="margin-top:10px;">
+                    </div>
+
+                    <button class="btn-action" style="font-size: 16px; padding: 15px;" onclick="saveNewsNotice()">SAVE NOTICE</button>
+                    <button class="btn-secondary" style="margin-top: 10px; font-size:12px; padding: 12px; border-color:var(--cute-yellow); color:var(--cute-yellow);" onclick="clearNewsForm()">CLEAR FORM</button>
+                </div>
+
+                <div style="width:100%; text-align:left; margin-top:20px;">
+                    <h4 style="color:var(--cute-pink); font-family:'Fredoka'; margin-bottom:10px;">REGISTRATION PAGE NOTICES</h4>
+                    <div id="adminRegNoticeList"></div>
+                    
+                    <h4 style="color:var(--success-green); font-family:'Fredoka'; margin-top:25px; margin-bottom:10px;">SPIN LOGIN PAGE NOTICES</h4>
+                    <div id="adminSpinNoticeList"></div>
+                </div>
+
+                <button class="btn-secondary" style="margin-top: 30px;" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: EVENT TIMER / SEASON ================= -->
+    <div class="screen scrollable" id="adminSeasonScreen">
+        <div class="center-wrap">
+            <div class="auth-container" style="max-width: 450px;">
+                <h2 class="auth-title" style="font-size: 30px; margin-bottom: 5px;">Season Setup</h2>
+                <p class="auth-subtitle" style="margin-bottom: 10px;">Set active dates for Registration and Spins</p>
+                
+                <!-- MASTER EVENT CONTROL -->
+                <div style="margin-bottom:25px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px; border: 2px solid var(--error-red); box-shadow: inset 0 0 20px rgba(255,51,102,0.1);">
+                    <h4 style="color:var(--error-red); text-transform:uppercase; margin-bottom: 15px; font-family:'Fredoka'; letter-spacing:1px; text-shadow: 0 2px 5px rgba(0,0,0,0.5); text-align: center;">Master Control</h4>
+                    <button class="btn-action" id="btnMasterToggle" style="background:var(--error-red); color:#fff; box-shadow: 0 8px 0 #cc0033;" onclick="toggleMasterEvent()">CLOSE ENTIRE EVENT</button>
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label">Season Name</span>
+                    <input type="text" id="seasonNameInput" class="premium-input" placeholder="e.g. Diwali Season 1">
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px dashed rgba(255,102,196,0.3);">
+                    <p style="color:var(--cute-pink); font-family:'Fredoka'; font-size:12px; letter-spacing:1px; margin-bottom:10px; text-transform:uppercase;">Registration Portal Window</p>
+                    <div class="input-wrapper">
+                        <span class="input-label">Reg Start Date & Time</span>
+                        <input type="datetime-local" id="seasonRegStart" class="premium-input">
+                    </div>
+                    <div class="input-wrapper" style="margin-bottom: 0;">
+                        <span class="input-label">Reg End Date & Time</span>
+                        <input type="datetime-local" id="seasonRegEnd" class="premium-input">
+                    </div>
+                </div>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 15px; margin-top: 15px; border: 1px dashed rgba(0,230,118,0.3);">
+                    <p style="color:var(--success-green); font-family:'Fredoka'; font-size:12px; letter-spacing:1px; margin-bottom:10px; text-transform:uppercase;">Spin Event Portal Window</p>
+                    <div class="input-wrapper">
+                        <span class="input-label">Spin Start Date & Time</span>
+                        <input type="datetime-local" id="seasonSpinStart" class="premium-input">
+                    </div>
+                    <div class="input-wrapper" style="margin-bottom: 0;">
+                        <span class="input-label">Spin End Date & Time</span>
+                        <input type="datetime-local" id="seasonSpinEnd" class="premium-input">
+                    </div>
+                </div>
+
+                <button class="btn-action" style="font-size: 16px; padding: 18px; margin-top: 20px;" onclick="saveSeasonSettings()">SAVE SEASON SETTINGS</button>
+                <button class="btn-secondary" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: REGISTRATION TICKET GENERATOR ================= -->
+    <div class="screen scrollable" id="adminRegScreen">
+        <div class="center-wrap">
+            <div class="auth-container" style="max-width: 450px;">
+                <h2 class="auth-title" style="font-size: 30px; margin-bottom: 5px;">Generate Ticket</h2>
+                <p class="auth-subtitle" style="margin-bottom: 25px;">Pre-approve User Details (Whitelist)</p>
+                
+                <div class="input-wrapper">
+                    <span class="input-label">Real Name</span>
+                    <input type="text" id="adminRegRealName" class="premium-input" placeholder="Real Name">
+                </div>
+                
+                <div class="input-wrapper">
+                    <span class="input-label">In-Game Name</span>
+                    <input type="text" id="adminRegIgn" class="premium-input" placeholder="In-Game Name">
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label">Game ID</span>
+                    <input type="text" id="adminRegGameId" class="premium-input" placeholder="Free Fire Game ID">
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label">Guild Role</span>
+                    <select id="adminRegRole" class="premium-input" style="appearance: none; cursor:pointer;">
+                        <option value="Member">Member</option>
+                        <option value="Elder">Elder</option>
+                        <option value="Acting Guild Leader">Acting Guild Leader</option>
+                    </select>
+                </div>
+
+                <div class="input-wrapper" style="margin-top: 25px;">
+                    <span class="input-label" style="color:var(--success-green);">Application ID (UID)</span>
+                    <input type="text" id="adminRegAppId" class="premium-input" placeholder="User App ID" style="border-color:var(--success-green);" oninput="this.value = this.value.toUpperCase();">
+                </div>
+
+                <div class="input-wrapper">
+                    <span class="input-label" style="color:var(--success-green);">Secret Ticket Code</span>
+                    <input type="text" id="adminRegCode" class="premium-input" placeholder="Assign Secret Code" style="border-color:var(--success-green);" oninput="this.value = this.value.toUpperCase();">
+                </div>
+                
+                <button class="btn-action" style="font-size: 16px; padding: 18px; margin-top: 20px;" onclick="generateAdminTicket()">GENERATE WHITELIST TICKET</button>
+                <button class="btn-secondary" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: GENERATED TICKETS LIST ================= -->
+    <div class="screen scrollable" id="adminGeneratedTicketsScreen">
+        <div class="center-wrap" style="justify-content: flex-start;">
+            <div class="admin-box-large">
+                <h2 class="main-title" style="color: var(--cute-yellow); font-family:'Baloo 2'; font-size:35px; margin-bottom:5px; text-align:center;">Generated Tickets</h2>
+                <p class="sub-title" style="color:#aaa; font-family:'Fredoka'; font-size:12px; margin-bottom:20px; text-align:center;">Awaiting User Registration</p>
+                
+                <div class="user-list-container" id="generatedTicketsContainer">
+                    <!-- Dynamic Firebase List Here -->
+                </div>
+
+                <button class="btn-secondary" style="margin-top: 30px;" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: USER LIST SCREEN ================= -->
+    <div class="screen scrollable" id="adminUserListScreen">
+        <div class="center-wrap" style="justify-content: flex-start;">
+            <div class="admin-box-large">
+                <h2 class="main-title" style="color: var(--success-green); font-family:'Baloo 2'; font-size:35px; margin-bottom:5px; text-align:center;">Registered Users</h2>
+                <p class="sub-title" style="color:#aaa; font-family:'Fredoka'; font-size:12px; margin-bottom:20px; text-align:center;">Tap a user to manage access (Hold to Remove from List)</p>
+                
+                <div class="user-list-container" id="userListContainer">
+                    <!-- Dynamic Firebase List Here -->
+                </div>
+
+                <button class="btn-secondary" style="margin-top: 30px;" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: ALL DATA CENTER ================= -->
+    <div class="screen scrollable" id="adminDataCenterScreen">
+        <div class="center-wrap" style="justify-content: flex-start;">
+            <div class="admin-box-large" style="max-width: 550px;">
+                <h2 class="main-title" style="color: var(--cute-yellow); font-family:'Baloo 2'; font-size:35px; margin-bottom:5px; text-align:center;">Data Center</h2>
+                <p class="sub-title" style="color:#aaa; font-family:'Fredoka'; font-size:12px; margin-bottom:20px; text-align:center;">Complete Guild Database Logs (Hold to Permanently Delete)</p>
+                
+                <div class="dc-tabs">
+                    <button id="tabBtnAll" class="dc-tab-btn active" onclick="switchDataTab('all')">ALL DATA</button>
+                    <button id="tabBtnSeason" class="dc-tab-btn" onclick="switchDataTab('season')">SEASON WISE</button>
+                </div>
+
+                <select id="seasonFilterDropdown" class="premium-input" style="display:none; margin-bottom: 20px; appearance:none; cursor:pointer;" onchange="renderDataList()">
+                    <option value="">Select Season...</option>
+                </select>
+
+                <div class="user-list-container" id="dataCenterContainer" style="max-height: 55vh; margin-top: 0;">
+                    <!-- Data Cards Injected Here -->
+                </div>
+
+                <button class="btn-secondary" style="margin-top: 20px;" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= ADMIN: RIG SLOTS ================= -->
+    <div class="screen scrollable" id="adminRigScreen">
+        <div class="center-wrap" style="justify-content: flex-start;">
+            <div class="admin-box-large">
+                
+                <div class="rig-card">
+                    <div class="rig-header">
+                        <span class="rig-type" style="color: var(--cute-gold);">MEGA</span>
+                        <input type="text" id="nameMega" class="custom-name-input" placeholder="Reward Name (e.g. 10K Dias)">
+                    </div>
+                    <div class="rig-body">
+                        <div class="rig-boxes">
+                            <input type="text" id="numMega1" class="rig-box" maxlength="1" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="color: var(--cute-gold); border-color:var(--cute-gold);">
+                            <input type="text" id="numMega2" class="rig-box" maxlength="1" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="color: var(--cute-gold); border-color:var(--cute-gold);">
+                            <input type="text" id="numMega3" class="rig-box" maxlength="1" oninput="this.value = this.value.replace(/[^0-9]/g, '');" style="color: var(--cute-gold); border-color:var(--cute-gold);">
+                        </div>
+                        <button class="btn-add-rig" style="background:var(--cute-gold); color:#5a3b00; box-shadow: 0 4px 0 #d4a000;" onclick="addRigToPool('Mega', 'var(--cute-gold)')">ADD</button>
+                    </div>
+                    <div class="prob-row" style="display:none;">
+                        <!-- Hidden sliders to prevent confusion -->
+                    </div>
+                </div>
+
+                <div class="rig-card">
+                    <div class="rig-header">
+                        <span class="rig-type" style="color: var(--cute-pink);">VIP</span>
+                        <input type="text" id="nameVip" class="custom-name-input" placeholder="Reward Name (e.g. Elite Pass)">
+                    </div>
+                    <div class="rig-body">
+                        <div class="rig-boxes">
+                            <input type="text" id="numVip1" class="rig-box" maxlength="1" style="color:var(--cute-pink); border-color:var(--cute-pink);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <input type="text" id="numVip2" class="rig-box" maxlength="1" style="color:var(--cute-pink); border-color:var(--cute-pink);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <input type="text" id="numVip3" class="rig-box" maxlength="1" style="color:var(--cute-pink); border-color:var(--cute-pink);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                        <button class="btn-add-rig" style="background:var(--cute-pink); color:#fff; box-shadow: 0 4px 0 #cc0066;" onclick="addRigToPool('Vip', 'var(--cute-pink)')">ADD</button>
+                    </div>
+                    <div class="prob-row" style="display:none;">
+                         <!-- Hidden sliders to prevent confusion -->
+                    </div>
+                </div>
+
+                <div class="rig-card">
+                    <div class="rig-header">
+                        <span class="rig-type" style="color: var(--success-green);">RARE</span>
+                        <input type="text" id="nameRare" class="custom-name-input" placeholder="Reward Name (e.g. Room Card)">
+                    </div>
+                    <div class="rig-body">
+                        <div class="rig-boxes">
+                            <input type="text" id="numRare1" class="rig-box" maxlength="1" style="color:var(--success-green); border-color:var(--success-green);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <input type="text" id="numRare2" class="rig-box" maxlength="1" style="color:var(--success-green); border-color:var(--success-green);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            <input type="text" id="numRare3" class="rig-box" maxlength="1" style="color:var(--success-green); border-color:var(--success-green);" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        </div>
+                        <button class="btn-add-rig" style="background:var(--success-green); color:#000; box-shadow: 0 4px 0 #00994d;" onclick="addRigToPool('Rare', 'var(--success-green)')">ADD</button>
+                    </div>
+                    <div class="prob-row" style="display:none;">
+                         <!-- Hidden sliders to prevent confusion -->
+                    </div>
+                </div>
+
+                <div class="active-rigs-container">
+                    <div class="active-rigs-title">ACTIVE REWARD COMBINATIONS (POOL)</div>
+                    <div id="activeRigsList"></div>
+                    <button class="btn-secondary" style="background: rgba(255,51,102,0.2); color: var(--error-red); border-color: var(--error-red); font-size:12px; margin-top:20px;" onclick="clearAllRigs()">CLEAR ALL COMBINATIONS</button>
+                </div>
+
+                <button class="btn-secondary" style="margin-bottom: 40px; margin-top: 20px;" onclick="switchScreen('adminMainScreen')">BACK TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS LOGIC -->
+    <script>
+        // ==========================================
+        // FIREBASE SETUP
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB-u-e5P3Yx2GxO5Azm79hondxvnD3c-mM",
+            authDomain: "meow-3d222.firebaseapp.com",
+            projectId: "meow-3d222",
+            storageBucket: "meow-3d222.firebasestorage.app",
+            messagingSenderId: "988369755636",
+            appId: "1:988369755636:web:3f1e0d98dd5392b2ed2da1",
+            measurementId: "G-FBD8Q0P05K"
+        };
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+        const db = firebase.firestore();
+
+        // GLOBAL DATA
+        window.appSeasonData = { isEventClosed: false }; 
+        let allUsersDataArray = [];
+        let whitelistCache = []; 
+        let currentDataCenterTab = 'all';
+        let countdownTimerInterval = null;
+
+        // ==========================================
+        // LONG PRESS TO DELETE LOGIC 
+        // ==========================================
+        function showDeleteBtnOverlay(element, docId, sourceContext) {
+            if(element.querySelector('.delete-overlay')) return;
+            vibe(100); 
+            
+            let overlay = document.createElement('div');
+            overlay.className = 'delete-overlay';
+            
+            // Check context to display correct text
+            let btnText = sourceContext === 'userList' ? 'REMOVE FROM LIST' : 'PERMANENT DELETE';
+            
+            overlay.innerHTML = `
+                <button class="confirm-del-btn"><i class="fas fa-trash-alt"></i> TAP TO ${btnText}</button>
+                <button class="cancel-del-btn"><i class="fas fa-times"></i></button>
+            `;
+
+            overlay.querySelector('.confirm-del-btn').onclick = (e) => {
+                e.stopPropagation();
+                
+                if (sourceContext === 'userList') {
+                    // Hide from User List, keep in Data Center
+                    if(confirm("Are you sure you want to remove this user from the Registered List? (Data will remain safe in Data Center)")) {
+                        db.collection("users").doc(docId).update({ isHiddenFromList: true }).then(() => {
+                            showCustomAlert('success', 'Removed', 'User removed from this list.');
+                            fetchUserList();
+                        });
+                    }
+                } else {
+                    // Permanent Delete from Data Center
+                    if(confirm("Are you sure you want to PERMANENTLY DELETE this record from the database?")) {
+                        db.collection("users").doc(docId).delete().then(() => {
+                            showCustomAlert('success', 'Deleted', 'Record permanently deleted.');
+                            fetchDataCenter();
+                        });
+                    }
+                }
+                overlay.remove();
+            };
+            
+            overlay.querySelector('.cancel-del-btn').onclick = (e) => {
+                e.stopPropagation();
+                overlay.remove();
+            };
+            
+            element.appendChild(overlay);
+        }
+
+        function addHoldToDelete(element, docId, sourceContext) {
+            let pressTimer;
+            let isLongPress = false;
+
+            const start = (e) => {
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    showDeleteBtnOverlay(element, docId, sourceContext);
+                }, 800); 
+            };
+
+            const cancel = () => { clearTimeout(pressTimer); };
+
+            element.addEventListener('mousedown', start);
+            element.addEventListener('touchstart', start, {passive: true});
+            element.addEventListener('mouseup', cancel);
+            element.addEventListener('mouseleave', cancel);
+            element.addEventListener('touchend', cancel);
+            element.addEventListener('touchmove', cancel, {passive: true});
+
+            return () => isLongPress;
+        }
+
+        // ==========================================
+        // ADMIN SECRET TRIGGER
+        // ==========================================
+        let clickCount = 0; let clickTimer;
+        document.querySelectorAll('.admin-trigger').forEach(el => {
+            el.addEventListener('click', () => {
+                clickCount++; clearTimeout(clickTimer);
+                if (clickCount >= 5) { switchScreen('adminLoginScreen'); clickCount = 0; }
+                clickTimer = setTimeout(() => { clickCount = 0; }, 1000);
+            });
+        });
+
+        function verifyAdminLogin() {
+            playSound('sndClick');
+            let u = document.getElementById('adminUser').value.trim();
+            let p = document.getElementById('adminPass').value.trim();
+            if(u === 'Piyas29' && p === 'piyas743411') {
+                vibe([50, 50]);
+                document.getElementById('adminUser').value = ''; document.getElementById('adminPass').value = '';
+                switchScreen('adminMainScreen');
+            } else {
+                showCustomAlert('error', 'Access Denied', 'Incorrect Username or Password.');
+            }
+        }
+
+        // ==========================================
+        // PERSISTENCE, STARTUP & ROUTING LOGIC
+        // ==========================================
+        window.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('loadingOverlay').classList.add('active');
+            renderActiveRigs();
+            loadAdminDataFromFirebase();
+            loadWhitelistForLiveValidation();
+            fetchNewsNotices();
+        });
+
+        function loadWhitelistForLiveValidation() {
+            db.collection("registeredTickets").onSnapshot(snap => {
+                whitelistCache = [];
+                snap.forEach(doc => { whitelistCache.push({ appId: doc.id, ...doc.data() }); });
+                
+                // Auto render if admin is currently viewing this screen
+                if (document.getElementById('adminGeneratedTicketsScreen').classList.contains('active')) {
+                    renderGeneratedTickets();
+                }
+            });
+        }
+
+        function syncAdminDataToFirebase() {
+            const pool = JSON.parse(localStorage.getItem('meow_rig_pool') || '[]');
+            
+            let dataPayload = { rigPool: pool };
+            if(window.appSeasonData) dataPayload.season = window.appSeasonData;
+            db.collection("admin").doc("settings").set(dataPayload, { merge: true });
+        }
+
+        function loadAdminDataFromFirebase() {
+            db.collection("admin").doc("settings").get().then((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if(data.rigPool) localStorage.setItem('meow_rig_pool', JSON.stringify(data.rigPool));
+                    if(data.season) { 
+                        window.appSeasonData = data.season;
+                        if(window.appSeasonData.isEventClosed === undefined) window.appSeasonData.isEventClosed = false;
+                    }
+                }
+                renderActiveRigs(); evaluateRouting(); 
+            }).catch(err => { evaluateRouting(); });
+        }
+
+        function toggleMasterEvent() {
+            window.appSeasonData.isEventClosed = !window.appSeasonData.isEventClosed;
+            updateMasterBtnUI();
+            syncAdminDataToFirebase();
+        }
+
+        function updateMasterBtnUI() {
+            const btn = document.getElementById('btnMasterToggle');
+            if(window.appSeasonData && window.appSeasonData.isEventClosed) {
+                btn.style.background = 'var(--success-green)';
+                btn.style.boxShadow = '0 8px 0 #00994d';
+                btn.innerHTML = 'OPEN ENTIRE EVENT';
+            } else {
+                btn.style.background = 'var(--error-red)';
+                btn.style.boxShadow = '0 8px 0 #cc0033';
+                btn.innerHTML = 'CLOSE ENTIRE EVENT';
+            }
+        }
+
+        function evaluateRouting() {
+            setTimeout(() => { document.getElementById('loadingOverlay').classList.remove('active'); }, 800);
+            
+            let sData = window.appSeasonData || {};
+            let isEventClosed = sData.isEventClosed === true;
+
+            let isDeviceRegistered = localStorage.getItem('device_registered');
+            let isLoggedIn = localStorage.getItem('currentUser');
+
+            let now = new Date().getTime();
+            let rStart = sData.regStart ? new Date(sData.regStart).getTime() : 0;
+            let rEnd = sData.regEnd ? new Date(sData.regEnd).getTime() : 0;
+            let sStart = sData.spinStart ? new Date(sData.spinStart).getTime() : 0;
+            let sEnd = sData.spinEnd ? new Date(sData.spinEnd).getTime() : 0;
+
+            if (isEventClosed) {
+                switchScreen('closedScreen');
+                document.getElementById('closedMsg').innerHTML = "The Event is currently offline.<br>Closed by Admin.";
+                return;
+            }
+
+            if (isLoggedIn) {
+                if (sStart && sEnd && now >= sStart && now <= sEnd) {
+                    switchScreen('gameScreen');
+                } else {
+                    switchScreen('closedScreen');
+                    if (now < sStart) document.getElementById('closedMsg').innerHTML = "The Spin Event has not started yet.";
+                    else document.getElementById('closedMsg').innerHTML = "The Spin Event has ended.";
+                }
+            } 
+            else if (isDeviceRegistered) {
+                if (sStart && sEnd && now >= sStart && now <= sEnd) {
+                    switchScreen('authScreen');
+                } else if (now < sStart) {
+                    switchScreen('countdownScreen');
+                    startCountdown(sStart);
+                } else {
+                    switchScreen('closedScreen');
+                    document.getElementById('closedMsg').innerText = "The Spin Event has ended.";
+                }
+            } 
+            else {
+                if (rStart && rEnd && now >= rStart && now <= rEnd) {
+                    switchScreen('publicRegScreen');
+                } else {
+                    switchScreen('closedScreen');
+                    if (now < rStart) document.getElementById('closedMsg').innerText = "Registration has not started yet.";
+                    else document.getElementById('closedMsg').innerText = "Registration is currently closed.";
+                }
+            }
+        }
+
+        function populateSeasonScreenFields() {
+            let sData = window.appSeasonData || {};
+            document.getElementById('seasonNameInput').value = sData.name || '';
+            document.getElementById('seasonRegStart').value = sData.regStart || '';
+            document.getElementById('seasonRegEnd').value = sData.regEnd || '';
+            document.getElementById('seasonSpinStart').value = sData.spinStart || '';
+            document.getElementById('seasonSpinEnd').value = sData.spinEnd || '';
+            updateMasterBtnUI();
+        }
+
+        function saveSeasonSettings() {
+            let sName = document.getElementById('seasonNameInput').value.trim();
+            let rStart = document.getElementById('seasonRegStart').value;
+            let rEnd = document.getElementById('seasonRegEnd').value;
+            let sStart = document.getElementById('seasonSpinStart').value;
+            let sEnd = document.getElementById('seasonSpinEnd').value;
+            
+            let isClosed = window.appSeasonData ? window.appSeasonData.isEventClosed : false;
+
+            window.appSeasonData = { 
+                name: sName, regStart: rStart, regEnd: rEnd, spinStart: sStart, spinEnd: sEnd, 
+                isEventClosed: isClosed
+            };
+            syncAdminDataToFirebase();
+            showCustomAlert('success', 'Settings Saved', `Season dates and settings have been updated successfully.`);
+        }
+
+        // ==========================================
+        // NEWS HEADLINE MARQUEE LOGIC
+        // ==========================================
+        function clearNewsForm() {
+            document.getElementById('newsEditId').value = '';
+            document.getElementById('newsText').value = '';
+            document.getElementById('newsDate').value = '';
+            document.getElementById('newsSpeed').value = '100';
+            document.getElementById('newsFpsVal').innerText = '100 FPS';
+        }
+
+        function saveNewsNotice() {
+            let editId = document.getElementById('newsEditId').value;
+            let target = document.getElementById('newsTarget').value;
+            let tag = document.getElementById('newsTag').value;
+            let text = document.getElementById('newsText').value.trim();
+            let dateStr = document.getElementById('newsDate').value;
+            let style = document.getElementById('newsStyle').value;
+            let speed = parseInt(document.getElementById('newsSpeed').value);
+
+            if(!text) { showCustomAlert('error', 'Error', 'Please enter some notice text!'); return; }
+            
+            let data = { target, tag, text, dateStr, style, speed, timestamp: Date.now() };
+
+            if(editId) {
+                db.collection("notices").doc(editId).set(data).then(() => {
+                    showCustomAlert('success', 'Saved', 'Notice updated successfully.'); clearNewsForm();
+                }).catch(err => showCustomAlert('error', 'Error', 'Failed to update.'));
+            } else {
+                db.collection("notices").add(data).then(() => {
+                    showCustomAlert('success', 'Added', 'New notice added successfully.'); clearNewsForm();
+                }).catch(err => showCustomAlert('error', 'Error', 'Failed to add notice.'));
+            }
+        }
+
+        function editNotice(id, target, tag, text, dateStr, style, speed) {
+            document.getElementById('newsEditId').value = id;
+            document.getElementById('newsTarget').value = target;
+            document.getElementById('newsTag').value = tag;
+            document.getElementById('newsText').value = text;
+            document.getElementById('newsDate').value = dateStr;
+            document.getElementById('newsStyle').value = style;
+            document.getElementById('newsSpeed').value = speed;
+            document.getElementById('newsFpsVal').innerText = speed + ' FPS';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function deleteNotice(id) {
+            if(confirm("Are you sure you want to delete this notice?")) {
+                db.collection("notices").doc(id).delete();
+            }
+        }
+
+        function fetchNewsNotices() {
+            db.collection("notices").orderBy("timestamp", "desc").onSnapshot(snap => {
+                let regItems = [];
+                let spinItems = [];
+                let adminRegHtml = ''; 
+                let adminSpinHtml = '';
+                
+                let avgRegSpeed = 0, regCount = 0;
+                let avgSpinSpeed = 0, spinCount = 0;
+
+                snap.forEach(doc => {
+                    let d = doc.data();
+                    let id = doc.id;
+                    let dateTag = d.dateStr ? `<span class="notice-date">${d.dateStr}</span>` : '';
+                    
+                    let itemHtml = `<div class="notice-item ${d.style}"><span class="tag-badge tag-${d.tag}">${d.tag}</span><span>${d.text}</span>${dateTag}</div>`;
+                    
+                    let adminListHtml = `
+                        <div class="admin-notice-item">
+                            <div class="${d.style} admin-notice-text" style="animation:none; text-shadow:none; padding:5px; background:rgba(255,255,255,0.05); border-radius:8px;">
+                                <span class="tag-badge tag-${d.tag}" style="font-size:9px;">${d.tag}</span>
+                                ${d.text} ${dateTag}
+                            </div>
+                            <div class="admin-notice-actions">
+                                <span style="font-size:11px; color:#aaa;">Speed: ${d.speed} FPS</span>
+                                <div>
+                                    <button class="btn-del" style="color:var(--cute-yellow); margin-right:10px;" onclick="editNotice('${id}', '${d.target}', '${d.tag}', \`${d.text}\`, '${d.dateStr}', '${d.style}', ${d.speed})"><i class="fas fa-edit"></i></button>
+                                    <button class="btn-del" onclick="deleteNotice('${id}')"><i class="fas fa-trash-alt"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    if (d.target === 'reg') { 
+                        regItems.push(itemHtml); 
+                        adminRegHtml += adminListHtml; 
+                        avgRegSpeed += d.speed; regCount++;
+                    }
+                    if (d.target === 'spin') { 
+                        spinItems.push(itemHtml); 
+                        adminSpinHtml += adminListHtml; 
+                        avgSpinSpeed += d.speed; spinCount++;
+                    }
+                });
+
+                let regDur = regCount ? regCount * (30 - ((avgRegSpeed/regCount) / 200) * 25) : 15;
+                let spinDur = spinCount ? spinCount * (30 - ((avgSpinSpeed/spinCount) / 200) * 25) : 15;
+
+                let finalRegHtml = regItems.length ? `<div class="notice-bar"><div class="notice-scroll" style="animation-duration: ${regDur}s;">${regItems.join('')}</div></div>` : '';
+                let finalSpinHtml = spinItems.length ? `<div class="notice-bar"><div class="notice-scroll" style="animation-duration: ${spinDur}s;">${spinItems.join('')}</div></div>` : '';
+                
+                document.getElementById('regNoticesTop').innerHTML = finalRegHtml;
+                document.getElementById('spinNoticesTop').innerHTML = finalSpinHtml;
+                if(document.getElementById('adminRegNoticeList')) {
+                    document.getElementById('adminRegNoticeList').innerHTML = adminRegHtml || '<p style="color:#666; font-size:12px;">No notices for Registration page.</p>';
+                    document.getElementById('adminSpinNoticeList').innerHTML = adminSpinHtml || '<p style="color:#666; font-size:12px;">No notices for Spin page.</p>';
+                }
+            });
+        }
+
+        // ==========================================
+        // UTILS
+        // ==========================================
+        function vibe(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
+        function playSound(id) { const s = document.getElementById(id); if(s) { s.currentTime = 0; s.play().catch(()=>{}); } }
+        function stopSound(id) { const s = document.getElementById(id); if(s) { s.pause(); s.currentTime = 0; } }
+        const digitColors = { '0': '#e0e0e0', '1': '#ff4d4d', '2': '#33ccff', '3': '#00e676', '4': '#ff66c4', '5': '#ff9900', '6': '#b066ff', '7': '#ffde59', '8': '#00ffcc', '9': '#ff3399' };
+        function getColorForDigit(digit) { return digitColors[digit] || '#ffffff'; }
+
+        function switchScreen(screenId) {
+            playSound('sndClick');
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if(screenId === 'adminRigScreen') { renderActiveRigs(); }
+            if(screenId === 'adminSeasonScreen') { populateSeasonScreenFields(); }
+        }
+
+        function showCustomAlert(type, title, msg) {
+            const overlay = document.getElementById('customAlertOverlay'); const box = document.getElementById('alertBox');
+            const icon = document.getElementById('alertIcon'); const btn = document.getElementById('alertBtn');
+            box.style.border = ''; box.style.boxShadow = ''; icon.className = 'alert-icon'; btn.style.background = ''; btn.style.color = '';
+            if(type === 'error') {
+                box.style.border = '3px solid var(--error-red)'; box.style.boxShadow = '0 0 30px rgba(255,51,102,0.3)';
+                icon.className = 'fas fa-exclamation-triangle alert-icon'; icon.style.color = 'var(--error-red)'; btn.style.background = 'var(--error-red)'; btn.style.color = '#fff';
+                playSound('sndAlertErr'); vibe([50, 50, 50]);
+            } else if (type === 'success' || type === 'admin') {
+                let col = type === 'success' ? '#00e676' : 'var(--cute-gold)';
+                box.style.border = `3px solid ${col}`; box.style.boxShadow = `0 0 30px ${col}44`;
+                icon.className = 'fas fa-check-circle alert-icon'; icon.style.color = col; btn.style.background = col; btn.style.color = '#000';
+                playSound(type === 'success' ? 'sndAlertSucc' : 'sndClick'); vibe(100);
+            }
+            document.getElementById('alertTitle').innerText = title; document.getElementById('alertMsg').innerHTML = msg; overlay.classList.add('active');
+        }
+        function closeCustomAlert() { playSound('sndClick'); document.getElementById('customAlertOverlay').classList.remove('active'); }
+
+        // ==========================================
+        // ADMIN MANAGEMENT (USERS, TICKETS & DATA CENTER)
+        // ==========================================
+
+        function openGeneratedTickets() { switchScreen('adminGeneratedTicketsScreen'); renderGeneratedTickets(); }
+        
+        function openTicketDetails(t) {
+            playSound('sndClick'); vibe(50);
+            document.getElementById('tdTitle').innerText = t.inGameName || 'Ticket Info';
+            document.getElementById('tdDetails').innerHTML = `
+                <strong style="color:var(--cute-yellow)">Real Name:</strong> <span style="color:#fff">${t.realName}</span><br>
+                <strong style="color:var(--cute-yellow)">In-Game Name:</strong> <span style="color:#fff">${t.inGameName}</span><br>
+                <strong style="color:var(--cute-yellow)">App ID (UID):</strong> <span style="color:#fff">${t.appId}</span><br>
+                <strong style="color:var(--cute-yellow)">Game ID:</strong> <span style="color:#fff">${t.gameId}</span><br>
+                <strong style="color:var(--cute-yellow)">Guild Role:</strong> <span style="color:#fff">${t.role}</span><br>
+                <strong style="color:var(--cute-yellow)">Secret Code:</strong> <span style="color:#fff">${t.code}</span>
+            `;
+            document.getElementById('ticketDetailsOverlay').classList.add('active');
+        }
+        function closeTicketDetails() { playSound('sndClick'); document.getElementById('ticketDetailsOverlay').classList.remove('active'); }
+
+        function renderGeneratedTickets() {
+            const container = document.getElementById('generatedTicketsContainer');
+            container.innerHTML = '';
+            if(whitelistCache.length === 0) {
+                container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">No generated tickets available.</p>'; return;
+            }
+            whitelistCache.forEach((t, i) => {
+                let div = document.createElement('div');
+                div.className = 'user-list-item';
+                div.innerHTML = `
+                    <div class="user-sl">${i+1}</div>
+                    <div class="user-info-brief">
+                        <span class="user-info-name">${t.realName} (${t.inGameName})</span>
+                        <span class="user-info-uid" style="color:var(--success-green); margin-top:5px;">APP ID: ${t.appId}</span>
+                        <span class="user-info-uid" style="color:var(--cute-pink)">CODE: ${t.code}</span>
+                    </div>
+                    <button class="btn-del" onclick="deleteGeneratedTicket('${t.appId}')" style="background:var(--error-red); padding:10px 15px; border-radius:10px; color:#fff; font-size:14px;"><i class="fas fa-trash"></i></button>
+                `;
+                div.onclick = (e) => { if(!e.target.closest('.btn-del')) { openTicketDetails(t); } };
+                container.appendChild(div);
+            });
+        }
+        function deleteGeneratedTicket(appId) {
+            if(confirm("Are you sure you want to delete this ticket?")) {
+                db.collection("registeredTickets").doc(appId).delete();
+                setTimeout(renderGeneratedTickets, 500);
+            }
+        }
+
+        function openUserList() { switchScreen('adminUserListScreen'); fetchUserList(); }
+        function fetchUserList() {
+            const container = document.getElementById('userListContainer');
+            container.innerHTML = '<div style="text-align:center; width:100%;"><i class="fas fa-spinner fa-spin" style="font-size:40px; color:var(--cute-yellow); margin-top:30px;"></i></div>';
+            db.collection("users").get().then((snap) => {
+                container.innerHTML = '';
+                if(snap.empty) { container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">No registered users found.</p>'; return; }
+                
+                let usersArr = []; 
+                snap.forEach(doc => { 
+                    let data = doc.data();
+                    if(!data.isHiddenFromList) { // Filter out users hidden from the list
+                        usersArr.push({id: doc.id, ...data}); 
+                    }
+                });
+
+                if(usersArr.length === 0) {
+                    container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">No active users in list. (Some might be hidden/removed)</p>'; return;
+                }
+
+                usersArr.sort((a,b) => {
+                    let timeA = a.registeredAt ? a.registeredAt.toMillis() : (a.lastLogin ? a.lastLogin.toMillis() : 0);
+                    let timeB = b.registeredAt ? b.registeredAt.toMillis() : (b.lastLogin ? b.lastLogin.toMillis() : 0);
+                    return timeB - timeA;
+                });
+                let sl = 1;
+                usersArr.forEach(data => {
+                    let dateObj = data.registeredAt || data.lastLogin;
+                    let dateStr = dateObj ? dateObj.toDate().toLocaleString() : 'Just Registered';
+                    let statusClass = '';
+                    if(data.status === 'blocked') statusClass = 'blocked';
+                    if(data.status === 'canceled') statusClass = 'canceled';
+                    
+                    let div = document.createElement('div'); div.className = `user-list-item ${statusClass}`;
+                    
+                    let iconHtml = '';
+                    if(data.status === 'blocked') iconHtml = '<i class="fas fa-ban" style="color:var(--error-red)"></i>';
+                    if(data.status === 'canceled') iconHtml = '<i class="fas fa-times-circle" style="color:#ff3366"></i>';
+
+                    div.innerHTML = `<div class="user-sl">${sl}</div><div class="user-info-brief"><span class="user-info-name">${data.inGameName || 'No IGN'} ${iconHtml}</span><span class="user-info-uid" style="color:var(--cute-yellow); font-size:10px;">ROLE: ${data.role || 'Member'}</span><span class="user-info-uid">APP ID: ${data.id} | CODE: ${data.ticketCode}</span><span class="user-info-date"><i class="fas fa-clock"></i> ${dateStr}</span></div>`;
+                    
+                    let checkLongPress = addHoldToDelete(div, data.id, 'userList');
+                    div.onclick = (e) => {
+                        if(checkLongPress()) { e.preventDefault(); return; }
+                        openUserAction(data.id, data, dateStr);
+                    };
+
+                    container.appendChild(div); sl++;
+                });
+            }).catch(err => { container.innerHTML = '<p style="color:var(--error-red); margin-top:20px; text-align:center;">Error loading users.</p>'; });
+        }
+
+        function openUserAction(appId, data, dateStr) {
+            playSound('sndClick'); vibe(50);
+            currentSelectedUser = appId; currentSelectedStatus = data.status || 'pending'; currentUserHasLoggedIn = !!data.lastLogin;
+            document.getElementById('uaTitle').innerText = data.inGameName || 'User Settings';
+            
+            let statusHTML = '';
+            if (data.status === 'blocked') statusHTML = `<span style="color:var(--error-red); font-weight:900; letter-spacing:1px;">BLOCKED</span>`;
+            else if (data.status === 'canceled') statusHTML = `<span style="color:var(--error-red); font-weight:900; letter-spacing:1px;">CANCELED</span>`;
+            else if (data.status === 'active' || currentUserHasLoggedIn) statusHTML = `<span style="color:var(--success-green); font-weight:900; letter-spacing:1px;">ACTIVE</span>`;
+            else statusHTML = `<span style="color:#33ccff; font-weight:900; letter-spacing:1px;">PENDING (Not Logged In)</span>`;
+
+            document.getElementById('uaDetails').innerHTML = `<strong style="color:var(--cute-yellow)">Real Name:</strong> <span style="color:#fff">${data.realName || 'N/A'}</span><br><strong style="color:var(--cute-yellow)">In-Game Name:</strong> <span style="color:#fff">${data.inGameName || 'N/A'}</span><br><strong style="color:var(--cute-yellow)">App ID:</strong> <span style="color:#fff">${appId}</span><br><strong style="color:var(--cute-yellow)">Game ID:</strong> <span style="color:#fff">${data.gameId || 'N/A'}</span><br><strong style="color:var(--cute-yellow)">Guild Role:</strong> <span style="color:#fff">${data.role || 'Member'}</span><br><strong style="color:var(--cute-yellow)">Ticket Code:</strong> <span style="color:#fff">${data.ticketCode}</span><br><strong style="color:var(--cute-yellow)">Ticket No:</strong> <span style="color:#fff">${data.ticketNumber || 'N/A'}</span><br><strong style="color:var(--cute-yellow)">Registered:</strong> <span style="color:#fff">${dateStr}</span><br><br><strong style="color:var(--cute-yellow)">Status:</strong> ${statusHTML}`;
+            
+            let blockBtn = document.getElementById('uaBtnBlock'); let cancelBtn = document.getElementById('uaBtnCancel');
+            if(data.status === 'canceled') { blockBtn.style.display = 'none'; cancelBtn.style.display = 'none'; } 
+            else {
+                blockBtn.style.display = 'block'; cancelBtn.style.display = 'block';
+                if(data.status === 'blocked') { blockBtn.innerHTML = '<i class="fas fa-check-circle"></i> UNBLOCK USER'; blockBtn.style.background = 'var(--success-green)'; blockBtn.style.color = '#000'; } 
+                else { blockBtn.innerHTML = '<i class="fas fa-ban"></i> BLOCK USER'; blockBtn.style.background = 'var(--cute-yellow)'; blockBtn.style.color = '#000'; }
+            }
+            document.getElementById('userActionOverlay').classList.add('active');
+        }
+
+        function closeUserAction() { playSound('sndClick'); document.getElementById('userActionOverlay').classList.remove('active'); currentSelectedUser = null; }
+
+        function toggleBlockUser() {
+            if(!currentSelectedUser) return;
+            let newStatus = (currentSelectedStatus === 'blocked') ? (currentUserHasLoggedIn ? 'active' : 'pending') : 'blocked';
+            db.collection("users").doc(currentSelectedUser).update({ status: newStatus }).then(() => {
+                closeUserAction(); showCustomAlert('success', 'Success', `User has been successfully ${newStatus === 'blocked' ? 'Blocked' : 'Unblocked'}!`); fetchUserList(); 
+            }).catch(err => { showCustomAlert('error', 'Error', 'Failed to update status.'); });
+        }
+
+        function cancelRegistrationUser() {
+            if(!currentSelectedUser) return;
+            db.collection("users").doc(currentSelectedUser).update({ status: 'canceled' }).then(() => {
+                closeUserAction(); showCustomAlert('success', 'Canceled', 'Registration has been permanently canceled.'); fetchUserList(); 
+            }).catch(err => { showCustomAlert('error', 'Error', 'Failed to cancel registration.'); });
+        }
+
+        function openDataCenter() { switchScreen('adminDataCenterScreen'); switchDataTab('all'); fetchDataCenter(); }
+        function switchDataTab(tab) {
+            playSound('sndClick'); currentDataCenterTab = tab;
+            document.getElementById('tabBtnAll').classList.remove('active'); document.getElementById('tabBtnSeason').classList.remove('active');
+            if(tab === 'all') { document.getElementById('tabBtnAll').classList.add('active'); document.getElementById('seasonFilterDropdown').style.display = 'none'; } 
+            else { document.getElementById('tabBtnSeason').classList.add('active'); document.getElementById('seasonFilterDropdown').style.display = 'block'; }
+            renderDataList();
+        }
+
+        function fetchDataCenter() {
+            const container = document.getElementById('dataCenterContainer');
+            container.innerHTML = '<div style="text-align:center; width:100%;"><i class="fas fa-spinner fa-spin" style="font-size:40px; color:var(--cute-yellow); margin-top:30px;"></i></div>';
+            db.collection("users").get().then((snap) => {
+                allUsersDataArray = [];
+                if(snap.empty) { container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">No data available in Data Center.</p>'; return; }
+                
+                // Fetch ALL data unconditionally for Data Center
+                snap.forEach(doc => { allUsersDataArray.push({id: doc.id, ...doc.data()}); });
+                
+                allUsersDataArray.sort((a,b) => {
+                    let timeA = a.registeredAt ? a.registeredAt.toMillis() : 0;
+                    let timeB = b.registeredAt ? b.registeredAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+                populateSeasonDropdown(); renderDataList();
+            }).catch(err => { container.innerHTML = '<p style="color:var(--error-red); margin-top:20px; text-align:center;">Failed to load Data Center.</p>'; });
+        }
+
+        function populateSeasonDropdown() {
+            const dropdown = document.getElementById('seasonFilterDropdown'); dropdown.innerHTML = '<option value="">Select Season...</option>';
+            let uniqueSeasons = new Set();
+            allUsersDataArray.forEach(user => { if(user.seasonInfo) uniqueSeasons.add(user.seasonInfo); });
+            uniqueSeasons.forEach(seasonName => { let opt = document.createElement('option'); opt.value = seasonName; opt.innerText = seasonName; dropdown.appendChild(opt); });
+        }
+
+        function renderDataList() {
+            const container = document.getElementById('dataCenterContainer'); container.innerHTML = '';
+            let displayList = allUsersDataArray;
+            if (currentDataCenterTab === 'season') {
+                let selectedSeason = document.getElementById('seasonFilterDropdown').value;
+                if(selectedSeason) { displayList = allUsersDataArray.filter(user => user.seasonInfo === selectedSeason); } 
+                else { container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">Please select a season from the dropdown above.</p>'; return; }
+            }
+            if(displayList.length === 0) { container.innerHTML = '<p style="color:#aaa; font-size:14px; margin-top:20px; text-align:center;">No records found.</p>'; return; }
+
+            displayList.forEach(data => {
+                let card = document.createElement('div'); card.className = 'data-card';
+                let statusText = 'PENDING'; let badgeClass = 'bg-pending';
+                if (data.status === 'blocked') { statusText = 'BLOCKED'; badgeClass = 'bg-blocked'; }
+                else if (data.status === 'canceled') { statusText = 'CANCELED'; badgeClass = 'bg-canceled'; }
+                else if (data.status === 'active' || data.lastLogin) { statusText = 'ACTIVE'; badgeClass = 'bg-active'; }
+
+                let lastResultText = data.lastWinReward ? data.lastWinReward : 'No Matches yet';
+                let lastNums = data.lastSpinNumbers ? data.lastSpinNumbers : '0 - 0 - 0';
+                let sTag = data.seasonInfo ? `<span style="color:var(--cute-yellow); font-size: 11px;"><i class="fas fa-star"></i> ${data.seasonInfo}</span>` : '';
+
+                card.innerHTML = `<div class="dc-header"><div style="display:flex; flex-direction:column;"><span class="dc-name">${data.inGameName || 'UNKNOWN'}</span>${sTag}</div><span class="dc-badge ${badgeClass}">${statusText}</span></div><div class="dc-grid"><div class="dc-item"><span>Real Name</span>${data.realName || 'N/A'}</div><div class="dc-item"><span>App ID (UID)</span>${data.id}</div><div class="dc-item"><span>Game ID</span>${data.gameId || 'N/A'}</div><div class="dc-item"><span>Guild Role</span>${data.role || 'Member'}</div><div class="dc-item"><span>Ticket Code</span>${data.ticketCode || 'N/A'}</div><div class="dc-item"><span>Ticket Number</span>#${data.ticketNumber || 'N/A'}</div><div class="dc-full"><div><span style="display:block; font-size:11px; color:#aaa; font-weight:900;">SPINS LEFT: <strong style="color:var(--cute-yellow); font-size:14px;">${data.spinsLeft !== undefined ? data.spinsLeft : data.initialSpins}</strong></span><span style="font-size:12px; color:#ddd;">Win: ${lastResultText}</span></div><div class="dc-spin-res"><div class="dc-num-box">${lastNums}</div></div></div></div>`;
+                
+                addHoldToDelete(card, data.id, 'dataCenter'); // Pass dataCenter context
+                container.appendChild(card);
+            });
+        }
+
+        // ==========================================
+        // REGISTRATION & LIVE VALIDATION LOGIC
+        // ==========================================
+
+        function liveValidate(fieldId, dbKey) {
+            let input = document.getElementById(fieldId);
+            let val = input.value.trim();
+            let status = document.getElementById('status-' + fieldId);
+            
+            if (val === '') {
+                status.innerHTML = '';
+                input.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                return;
+            }
+
+            let matches = whitelistCache.filter(t => {
+                let dbVal = String(t[dbKey]).toLowerCase();
+                return dbVal.startsWith(val.toLowerCase());
+            });
+            
+            if (matches.length > 0) {
+                let exactMatch = matches.find(t => String(t[dbKey]).toLowerCase() === val.toLowerCase());
+                
+                if (exactMatch) {
+                    status.innerHTML = '<i class="fas fa-check-circle"></i> VERIFIED';
+                    status.className = 'live-status status-green';
+                    input.style.borderColor = 'var(--success-green)';
+                } else {
+                    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> MATCHING RECORD...';
+                    status.className = 'live-status status-green';
+                    input.style.borderColor = 'var(--cute-yellow)';
+                }
+            } else {
+                status.innerHTML = '<i class="fas fa-times-circle"></i> INCORRECT DATA';
+                status.className = 'live-status status-red';
+                input.style.borderColor = 'var(--error-red)';
+            }
+        }
+
+        function generateAdminTicket() {
+            let realName = document.getElementById('adminRegRealName').value.trim();
+            let ign = document.getElementById('adminRegIgn').value.trim();
+            let appId = document.getElementById('adminRegAppId').value.trim();
+            let gameId = document.getElementById('adminRegGameId').value.trim();
+            let code = document.getElementById('adminRegCode').value.trim();
+            let role = document.getElementById('adminRegRole').value;
+
+            if(!realName || !ign || !appId || !gameId || !code) { 
+                showCustomAlert('error', 'Incomplete Form', 'Please completely fill the Whitelist Form!'); return; 
+            }
+            
+            db.collection("registeredTickets").doc(appId).set({
+                realName: realName, inGameName: ign, gameId: gameId, role: role, code: code, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).then(() => {
+                showCustomAlert('success', 'Whitelist Generated!', `App ID: ${appId}<br>User can now verify and enroll via public portal.`);
+                document.getElementById('adminRegRealName').value = ''; document.getElementById('adminRegIgn').value = '';
+                document.getElementById('adminRegAppId').value = ''; document.getElementById('adminRegGameId').value = ''; document.getElementById('adminRegCode').value = '';
+            }).catch(err => { showCustomAlert('error', 'Firebase Error', 'Failed to generate ticket.'); });
+        }
+
+        function runOtpAnimation(callback) {
+            document.getElementById('otpOverlay').classList.add('active');
+            let numEl = document.getElementById('otpNumbers');
+            numEl.style.color = "var(--cute-yellow)";
+            
+            let interval = setInterval(() => { numEl.innerText = Math.floor(100000 + Math.random() * 900000); }, 50);
+            
+            setTimeout(() => {
+                clearInterval(interval);
+                numEl.innerText = "VERIFIED";
+                numEl.style.color = "var(--success-green)";
+                playSound('sndAlertSucc'); vibe([100, 100]);
+                setTimeout(() => { document.getElementById('otpOverlay').classList.remove('active'); callback(); }, 1200);
+            }, 2500);
+        }
+
+        function submitPublicRegistrationLive() {
+            playSound('sndClick'); vibe(50);
+            
+            let appId = document.getElementById('pubRegAppId').value.trim();
+            let realName = document.getElementById('pubRegRealName').value.trim();
+            let ign = document.getElementById('pubRegIgn').value.trim();
+            let gameId = document.getElementById('pubRegGameId').value.trim();
+            let role = document.getElementById('pubRegRole').value;
+            let code = document.getElementById('pubRegCode').value.trim();
+
+            if(!appId || !realName || !ign || !gameId || !role || !code) { 
+                showCustomAlert('error', 'Incomplete Data', 'Please carefully fill and verify all boxes.'); return; 
+            }
+
+            let exactMatch = whitelistCache.find(t => 
+                String(t.appId).toLowerCase() === appId.toLowerCase() &&
+                String(t.realName).toLowerCase() === realName.toLowerCase() &&
+                String(t.inGameName).toLowerCase() === ign.toLowerCase() &&
+                String(t.gameId).toLowerCase() === gameId.toLowerCase() &&
+                String(t.role).toLowerCase() === role.toLowerCase() &&
+                String(t.code).toLowerCase() === code.toLowerCase()
+            );
+
+            if (exactMatch) {
+                runOtpAnimation(() => {
+                    let genTicketNumber = Math.floor(100000 + Math.random() * 900000);
+                    
+                    // Season Info Creation Logic
+                    let sData = window.appSeasonData || {};
+                    let sName = sData.name || 'Unknown Season';
+                    let sStart = sData.spinStart ? sData.spinStart.replace('T', ' ') : 'N/A';
+                    let sEnd = sData.spinEnd ? sData.spinEnd.replace('T', ' ') : 'N/A';
+                    let seasonInfoStr = `${sName} (Spin: ${sStart} to ${sEnd})`;
+
+                    let batch = db.batch();
+                    let userRef = db.collection("users").doc(exactMatch.appId);
+                    
+                    batch.set(userRef, {
+                        realName: exactMatch.realName, inGameName: exactMatch.inGameName, 
+                        gameId: exactMatch.gameId, role: exactMatch.role,
+                        ticketCode: exactMatch.code, ticketNumber: genTicketNumber,
+                        status: 'pending', seasonInfo: seasonInfoStr, initialSpins: 3, spinsLeft: 3,
+                        registeredAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    
+                    // Notice: ticketRef batch.delete() line has been REMOVED so Generated Tickets persist!
+                    
+                    batch.commit().then(() => {
+                        localStorage.setItem('device_registered', exactMatch.appId); 
+                        document.querySelectorAll('.reg-dark-input').forEach(i => { i.value = ''; i.style.borderColor = 'rgba(255, 255, 255, 0.1)'; });
+                        document.querySelectorAll('.live-status').forEach(s => s.innerHTML = '');
+                        
+                        evaluateRouting();
+                    });
+                });
+            } else {
+                showCustomAlert('error', 'Authorization Failed', 'Your details do not match perfectly. Look for the RED boxes and correct the errors.');
+            }
+        }
+
+        // ==========================================
+        // COUNTDOWN ENGINE
+        // ==========================================
+        function startCountdown(targetTime) {
+            if(countdownTimerInterval) clearInterval(countdownTimerInterval);
+            function updateTimer() {
+                let now = new Date().getTime();
+                let distance = targetTime - now;
+
+                if (distance < 0) {
+                    clearInterval(countdownTimerInterval);
+                    document.getElementById('cdDays').innerText = "00"; document.getElementById('cdHours').innerText = "00";
+                    document.getElementById('cdMins').innerText = "00"; document.getElementById('cdSecs').innerText = "00";
+                    evaluateRouting(); return;
+                }
+
+                let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                let seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('cdDays').innerText = days < 10 ? "0" + days : days;
+                document.getElementById('cdHours').innerText = hours < 10 ? "0" + hours : hours;
+                document.getElementById('cdMins').innerText = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById('cdSecs').innerText = seconds < 10 ? "0" + seconds : seconds;
+            }
+            updateTimer(); countdownTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // ==========================================
+        // SPIN EVENT LOGIN LOGIC
+        // ==========================================
+        function verifyLoginCode() {
+            playSound('sndClick'); vibe(50);
+            const btn = document.getElementById('authBtn');
+            let uid = document.getElementById('loginAppIdInput').value.trim();
+            let code = document.getElementById('loginTicketCodeInput').value.trim();
+            
+            if(!uid || !code) { showCustomAlert('error', 'Empty Fields', 'Please enter App ID and Code to login.'); return; }
+            
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> VERIFYING...`; btn.disabled = true;
+
+            if(uid === "ADMIN" && code === "MEOWADMIN") { processLogin(uid, code, 9999); return; }
+
+            db.collection("users").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    if (doc.data().ticketCode === code) {
+                        let status = doc.data().status;
+                        if (status === 'blocked' || status === 'canceled') {
+                            showCustomAlert('error', 'Access Denied', 'Your account has been ' + status.toUpperCase() + ' by Admin.');
+                            btn.innerHTML = `LOGIN TO SPIN`; btn.disabled = false;
+                        } else { processLogin(uid, code, doc.data().spinsLeft !== undefined ? doc.data().spinsLeft : 3); }
+                    } else {
+                        showCustomAlert('error', 'Invalid Login', 'Incorrect Secret Code.'); btn.innerHTML = `LOGIN TO SPIN`; btn.disabled = false;
+                    }
+                } else {
+                    showCustomAlert('error', 'Not Registered', 'This App ID is not registered yet. Wait for the next Registration window.');
+                    btn.innerHTML = `LOGIN TO SPIN`; btn.disabled = false;
+                }
+            }).catch(err => { showCustomAlert('error', 'Network Error', 'Failed to verify. Check connection.'); btn.innerHTML = `LOGIN TO SPIN`; btn.disabled = false; });
+        }
+
+        function processLogin(uid, code, spins) {
+            let sData = window.appSeasonData || {};
+            let sName = sData.name || 'Unknown Season';
+            let sStart = sData.spinStart ? sData.spinStart.replace('T', ' ') : 'N/A';
+            let sEnd = sData.spinEnd ? sData.spinEnd.replace('T', ' ') : 'N/A';
+            let seasonInfoStr = `${sName} (Spin: ${sStart} to ${sEnd})`;
+
+            db.collection("users").doc(uid).set({
+                lastLogin: firebase.firestore.FieldValue.serverTimestamp(), seasonInfo: seasonInfoStr, status: 'active'
+            }, { merge: true }).catch(err => console.log("Login save issue: ", err));
+
+            setTimeout(() => {
+                localStorage.setItem('currentUser', uid); 
+                localStorage.setItem('meow_spins_left', spins); 
+                localStorage.setItem('meow_session_win', 'false');
+                
+                document.getElementById('authBtn').innerHTML = `LOGIN TO SPIN`; 
+                document.getElementById('authBtn').disabled = false;
+                resetSlotsUI(); 
+                document.getElementById('spinsLeftText').innerText = spins;
+                
+                evaluateRouting(); 
+            }, 1000);
+        }
+
+        // ==========================================
+        // SLOT MACHINE ENGINE (100% RNG)
+        // ==========================================
+        function resetSlotsUI() {
+            const slots = [document.getElementById('slot1'), document.getElementById('slot2'), document.getElementById('slot3')];
+            slots.forEach(slot => { slot.innerHTML = '7'; slot.style.color = getColorForDigit('7'); slot.classList.remove('rgb-win'); });
+            document.getElementById('slotMachineBox').classList.remove('jackpot-win');
+            document.getElementById('resultDisplay').style.background = 'rgba(0,0,0,0.3)'; document.getElementById('resultDisplay').style.color = '#fff';
+            document.getElementById('resultDisplay').innerText = 'PRESS SPIN TO TEST YOUR LUCK';
+            document.getElementById('spinBtn').disabled = false; document.getElementById('spinBtn').innerHTML = `SPIN NOW`;
+        }
+
+        function addRigToPool(type, color) {
+            let name = document.getElementById(`name${type}`).value.trim();
+            let v1 = document.getElementById(`num${type}1`).value.trim(); let v2 = document.getElementById(`num${type}2`).value.trim(); let v3 = document.getElementById(`num${type}3`).value.trim();
+            if(name === "" || v1 === "" || v2 === "" || v3 === "") { showCustomAlert('error', 'Missing Data', 'Please enter a Reward Name and 3 Numbers!'); return; }
+            let pool = JSON.parse(localStorage.getItem('meow_rig_pool') || '[]');
+            pool.push({ id: Date.now(), type: type, name: name, nums: [v1, v2, v3], color: color });
+            localStorage.setItem('meow_rig_pool', JSON.stringify(pool)); syncAdminDataToFirebase();
+            document.getElementById(`name${type}`).value = ''; document.getElementById(`num${type}1`).value = ''; document.getElementById(`num${type}2`).value = ''; document.getElementById(`num${type}3`).value = '';
+            showCustomAlert('admin', 'Added to Pool', `[ ${v1} | ${v2} | ${v3} ] will reward:<br><strong>${name}</strong>`); renderActiveRigs();
+        }
+
+        function removeRig(id) {
+            let pool = JSON.parse(localStorage.getItem('meow_rig_pool') || '[]'); pool = pool.filter(p => p.id !== id);
+            localStorage.setItem('meow_rig_pool', JSON.stringify(pool)); syncAdminDataToFirebase(); renderActiveRigs();
+        }
+
+        function clearAllRigs() { localStorage.setItem('meow_rig_pool', '[]'); syncAdminDataToFirebase(); renderActiveRigs(); showCustomAlert('admin', 'Cleared', 'All rewards removed from pool.'); }
+
+        function renderActiveRigs() {
+            let pool = JSON.parse(localStorage.getItem('meow_rig_pool') || '[]');
+            let container = document.getElementById('activeRigsList'); container.innerHTML = '';
+            if(pool.length === 0) { container.innerHTML = '<p style="color:#aaa; font-size:13px; text-align:center; padding: 10px;">No active rewards in pool.</p>'; return; }
+            pool.forEach(p => {
+                let item = document.createElement('div'); item.className = 'active-item';
+                let cleanCol = p.color.replace('var(', '').replace(')', '');
+                if(cleanCol.includes('yellow') || cleanCol.includes('gold')) cleanCol = '#ffde59';
+                if(cleanCol.includes('pink')) cleanCol = '#ff66c4';
+                item.style.borderLeftColor = cleanCol;
+                item.innerHTML = `<div class="active-info"><span class="active-reward" style="color:${p.color}">${p.type} : ${p.name}</span><span class="active-nums" style="color:${p.color}">${p.nums.join(' &nbsp; ')}</span></div><button class="btn-del" onclick="removeRig(${p.id})"><i class="fas fa-trash-alt"></i></button>`;
+                container.appendChild(item);
+            });
+        }
+
+        let isSpinning = false; let spinIntervals = [];
+
+        function triggerSpin() {
+            if (isSpinning) return;
+            let currentSpins = parseInt(localStorage.getItem('meow_spins_left') || 0);
+            if (currentSpins <= 0) return;
+            isSpinning = true; playSound('sndClick'); vibe(50); playSound('sndSpin'); 
+
+            currentSpins--; localStorage.setItem('meow_spins_left', currentSpins); document.getElementById('spinsLeftText').innerText = currentSpins;
+            let currentUser = localStorage.getItem('currentUser');
+            if(currentUser) { db.collection("users").doc(currentUser).set({ spinsLeft: currentSpins }, { merge: true }); }
+
+            const btn = document.getElementById('spinBtn'); const machine = document.getElementById('slotMachineBox'); const resultText = document.getElementById('resultDisplay');
+            const slots = [ document.getElementById('slot1'), document.getElementById('slot2'), document.getElementById('slot3') ];
+            btn.disabled = true; btn.innerHTML = `<i class="fas fa-sync fa-spin"></i> SPINNING...`; machine.classList.remove('jackpot-win');
+            resultText.style.background = 'rgba(0,0,0,0.3)'; resultText.style.color = '#fff'; resultText.innerText = 'CALCULATING...';
+
+            slots.forEach((slot, index) => {
+                slot.classList.remove('bounce-stop', 'rgb-win'); slot.classList.add('is-spinning');
+                spinIntervals[index] = setInterval(() => { let rNum = Math.floor(Math.random() * 10).toString(); slot.innerHTML = rNum; slot.style.color = getColorForDigit(rNum); }, 40 + (index * 15)); 
+            });
+
+            // ================= 100% PURE RNG LOGIC =================
+            let pool = JSON.parse(localStorage.getItem('meow_rig_pool') || '[]'); 
+            let finalNumbers = [ Math.floor(Math.random() * 10).toString(), Math.floor(Math.random() * 10).toString(), Math.floor(Math.random() * 10).toString() ];
+            let winningObj = null;
+
+            // Check if randomly generated numbers perfectly match any predefined combination in the pool
+            for (let p of pool) {
+                if (p.nums[0] === finalNumbers[0] && p.nums[1] === finalNumbers[1] && p.nums[2] === finalNumbers[2]) {
+                    winningObj = p;
+                    break; 
+                }
+            }
+
+            if (!winningObj) {
+                // If it accidentally rolled a 3-of-a-kind (like 7-7-7) but 7-7-7 is NOT defined as a prize in the pool, 
+                // we randomly tweak the last digit so the user doesn't think they won a jackpot that the game didn't reward.
+                if(finalNumbers[0] === finalNumbers[1] && finalNumbers[1] === finalNumbers[2]) {
+                    let badNum = Math.floor(Math.random() * 10).toString(); 
+                    while(badNum === finalNumbers[0]) badNum = Math.floor(Math.random() * 10).toString(); 
+                    finalNumbers[2] = badNum;
+                }
+            }
+            // ========================================================
+
+            const delays = [1500, 2500, 4000]; 
+            slots.forEach((slot, index) => {
+                setTimeout(() => {
+                    clearInterval(spinIntervals[index]); slot.classList.remove('is-spinning');
+                    let stoppedNum = finalNumbers[index]; slot.innerHTML = stoppedNum; slot.style.color = getColorForDigit(stoppedNum); slot.classList.add('bounce-stop');
+                    playSound('sndStop'); vibe([50, 50]);
+                    if (index === 2) { stopSound('sndSpin'); setTimeout(() => { checkSlotResult(finalNumbers, winningObj, machine, btn, resultText, currentSpins); }, 500); }
+                }, delays[index]); 
+            });
+        }
+
+        function checkSlotResult(results, winningObj, machine, btn, resultText, remainingSpins) {
+            let isWin = (winningObj !== null); let finalName = isWin ? winningObj.name : 'No Match'; let finalNums = results.join(' - ');
+            let currentUser = localStorage.getItem('currentUser');
+            if(currentUser) { db.collection("users").doc(currentUser).set({ lastWinReward: finalName, lastSpinNumbers: finalNums }, { merge: true }); }
+
+            if (isWin) {
+                machine.classList.add('jackpot-win'); resultText.style.background = 'rgba(0,0,0,0.8)'; resultText.style.color = winningObj.color; resultText.innerHTML = `🎉 MATCHED: ${winningObj.name}! 🎉`;
+                document.getElementById('slot1').classList.add('rgb-win'); document.getElementById('slot2').classList.add('rgb-win'); document.getElementById('slot3').classList.add('rgb-win');
+                fireConfetti(); playSound('sndWin'); vibe([100, 100, 100, 100, 500]);
+                localStorage.setItem('meow_session_win', 'true'); localStorage.setItem('meow_session_win_name', winningObj.name); localStorage.setItem('meow_session_win_color', winningObj.color);
+                isSpinning = false; btn.innerHTML = `PROCESSING WIN...`; btn.disabled = true; setTimeout(() => { showFinalTransition('win'); }, 2500); 
+            } else {
+                resultText.style.color = '#ff66c4'; resultText.innerHTML = `NO MATCH. TRY AGAIN!`; playSound('sndLose'); vibe(300); isSpinning = false;
+                if(remainingSpins <= 0) { btn.innerHTML = `PROCESSING...`; btn.disabled = true; setTimeout(() => { showFinalTransition('lose'); }, 1500); } 
+                else { btn.disabled = false; btn.innerHTML = `SPIN AGAIN`; }
+            }
+        }
+
+        function showFinalTransition(type) {
+            if(type === 'win') playSound('sndLoadWin'); else playSound('sndLoadLose');
+            const loader = document.getElementById('loadingOverlay'); loader.classList.add('active'); 
+            setTimeout(() => {
+                document.getElementById('gameScreen').classList.remove('active'); loader.classList.remove('active');
+                let hasWon = localStorage.getItem('meow_session_win') === 'true';
+                if (hasWon) {
+                    let wName = localStorage.getItem('meow_session_win_name'); let wColor = localStorage.getItem('meow_session_win_color');
+                    document.getElementById('winPrizeName').innerText = wName; document.getElementById('winPrizeName').style.color = wColor; document.getElementById('winPrizeName').style.textShadow = `0 0 15px ${wColor}`;
+                    playSound('sndWin'); document.getElementById('winScreen').classList.add('active'); startContinuousConfetti(); 
+                } else { playSound('sndLose'); document.getElementById('loseScreen').classList.add('active'); }
+            }, 3500);
+        }
+
+        const canvas = document.getElementById('confettiCanvas'); const ctx = canvas.getContext('2d'); canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        let particles = []; const colors = ['#ffde59', '#ff66c4', '#8e2de2', '#00e676', '#ffffff']; let confettiRunning = false;
+        function startContinuousConfetti() { confettiRunning = true; for (let i = 0; i < 100; i++) addConfettiParticle(); animateConfetti(); }
+        function fireConfetti() {
+            for (let i = 0; i < 150; i++) {
+                particles.push({ x: canvas.width / 2, y: canvas.height / 2, r: Math.random() * 6 + 4, dx: Math.random() * 25 - 12.5, dy: Math.random() * -25 - 5, color: colors[Math.floor(Math.random() * colors.length)], tilt: Math.floor(Math.random() * 10) - 10, tiltAngleInc: (Math.random() * 0.07) + 0.05, tiltAngle: 0 });
+            }
+            if(!confettiRunning) animateConfetti();
+        }
+        function addConfettiParticle() { particles.push({ x: Math.random() * canvas.width, y: -10, r: Math.random() * 6 + 4, dx: Math.random() * 4 - 2, dy: Math.random() * 5 + 2, color: colors[Math.floor(Math.random() * colors.length)], tilt: Math.floor(Math.random() * 10) - 10, tiltAngleInc: (Math.random() * 0.07) + 0.05, tiltAngle: 0 }); }
+        function animateConfetti() {
+            requestAnimationFrame(animateConfetti); ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(confettiRunning && particles.length < 150) { addConfettiParticle(); }
+            particles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleInc; p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2; p.x += Math.sin(p.tiltAngle) * 2; p.x += p.dx; p.y += p.dy;
+                ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color; ctx.moveTo(p.x + p.tilt + p.r, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r); ctx.stroke();
+                if (p.y > canvas.height) { particles.splice(index, 1); }
+            });
+        }
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+    </script>
+</body>
+</html>
